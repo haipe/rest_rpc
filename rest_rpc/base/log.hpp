@@ -65,7 +65,7 @@ namespace timax
 	template<typename... Args>
 	static inline void SPD_LOG_NOTICE(const char* fmt, const Args&... args)
 	{
-		log::get().get_log()->notice(fmt, args...);
+//		log::get().get_log()->notice(fmt, args...);
 	}
 
 	template<typename... Args>

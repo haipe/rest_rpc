@@ -59,6 +59,15 @@ namespace timax { namespace rpc
 			return r;
 		}
 
+		bool call_binary(std::string const& handler_name, const std::string& prefix, char const* data, size_t length, framework_type ft = framework_type::DEFAULT)
+		{
+			bool r = send_binary(handler_name, prefix, data, length, ft);
+			if (!r)
+				throw std::runtime_error("call failed");
+
+			return r;
+		}
+
 		size_t recieve()
 		{
 			boost::system::error_code ec;
@@ -108,6 +117,18 @@ namespace timax { namespace rpc
 			return send_impl(message);
 		}
 
+		bool send_binary(std::string const& handler_name, const std::string& prefix, char const* data, size_t length, framework_type ft)
+		{
+			head_t head =
+			{
+				static_cast<int16_t>(data_type::BINARY),
+				static_cast<int16_t>(ft),
+				static_cast<int32_t>(handler_name.length() + 1 + prefix.length() + 1 + length)
+			};
+			const auto& message = get_binary_messages(head, handler_name, prefix, data, length);
+			return send_impl(message);
+		}
+
 		bool send_binary(std::string const& handler_name, char const* data, size_t length, framework_type ft)
 		{
 			head_t head =
@@ -144,12 +165,23 @@ namespace timax { namespace rpc
 			return message;
 		}
 
+		std::vector<boost::asio::const_buffer> get_binary_messages(head_t const& head, const std::string& handler_name, std::string const& prefix, const char* data, size_t len)
+		{
+			std::vector<boost::asio::const_buffer> message;
+			message.push_back(boost::asio::buffer(&head, sizeof(head_t)));
+			message.push_back(boost::asio::buffer(handler_name.c_str(), handler_name.length() + 1));
+			message.push_back(boost::asio::buffer(prefix.c_str(), prefix.length() + 1));
+			message.push_back(boost::asio::buffer(data, len));
+			return message;
+		}
+
 		std::vector<boost::asio::const_buffer> get_binary_messages(head_t const& head, std::string const& handler_name, const char* data, size_t len)
 		{
 			std::vector<boost::asio::const_buffer> message;
 			message.push_back(boost::asio::buffer(&head, sizeof(head_t)));
 			message.push_back(boost::asio::buffer(handler_name.c_str(), handler_name.length() + 1));
-			message.push_back(boost::asio::buffer(data, len));
+			if(data!=nullptr)
+				message.push_back(boost::asio::buffer(data, len));
 			return message;
 		}
 
@@ -223,6 +255,17 @@ namespace timax { namespace rpc
 		//{
 
 		//}
+
+		template <typename Protocol>
+		bool call_binary(Protocol const& protocol, const std::string& prefix, const char* data, size_t len)
+		{
+			return client_base::call_binary(protocol.name(), prefix, data, len, protocol.get_type());
+		}
+
+		bool call_binary(const std::string& handler_name, const std::string& prefix, const char* data, size_t len, framework_type ft = framework_type::DEFAULT)
+		{
+			return client_base::call_binary(handler_name, data, len, ft);
+		}
 
 		template <typename Protocol>
 		bool call_binary(Protocol const& protocol, const char* data, size_t len)

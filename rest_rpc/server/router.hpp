@@ -57,7 +57,7 @@ namespace timax { namespace rpc
 		template<typename Function, typename Self>
 		void register_binary_handler(std::string const & name, const Function& f, Self* self)
 		{
-			this->map_binary_[name] = [f, self](const char* data, size_t len) { (*self.*f)(data, len); };
+			this->map_binary_[name] = [f, self](std::string const & topic, const char* data, size_t len) { (*self.*f)(topic, data, len); };
 		}
 
 		void remove_handler(std::string const& name)
@@ -132,8 +132,14 @@ namespace timax { namespace rpc
 			if (type == framework_type::PUB)
 			{
 				//pub binary
-				if (callback_to_pub_binary_)
-					callback_to_pub_binary_(func_name, data + offset, length - offset);
+				auto it = map_binary_.find(func_name);
+				if (it != map_binary_.end())
+				{
+					it->second(func_name, data + offset, length - offset);
+				}
+
+				//if (callback_to_pub_binary_)
+				//	callback_to_pub_binary_(func_name, data + offset, length - offset);
 
 				conn->read_head();
 
@@ -146,7 +152,7 @@ namespace timax { namespace rpc
 				return;
 			}
 
-			it->second(data + offset, length - offset);
+			it->second(func_name, data + offset, length - offset);
 			conn->read_head();
 			//result = get_json(result_code::OK, result, std::string{});
 			//callback_to_server_(func_name, result.c_str(), conn, false);
@@ -290,7 +296,7 @@ namespace timax { namespace rpc
 		std::map<std::string, invoker_function> map_invokers_;
 		std::function<void(const std::string&, const char*, std::shared_ptr<connection>, int16_t, bool)> callback_to_server_;
 		std::function<void(const std::string&, const char*, size_t)> callback_to_pub_binary_;
-		std::map<std::string, std::function<void(const char*, size_t)>> map_binary_;
+		std::map<std::string, std::function<void(const std::string&, const char*, size_t)>> map_binary_;
 	};
 } }
 
