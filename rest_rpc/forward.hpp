@@ -29,9 +29,10 @@
 #include <map>
 #include <stdexcept>
 #include <type_traits>
+#include <memory>
 
 // third-party libraries
-#include <kapok/Kapok.hpp>
+//#include <kapok/Kapok.hpp>
 #include <msgpack.hpp>
 #include <thread_pool.hpp>
 
@@ -53,7 +54,7 @@ namespace timax { namespace rpc
 } }
 
 // common headers
-#include <rest_rpc/base/log.hpp>
+//#include <rest_rpc/base/log.hpp>
 #include <rest_rpc/base/function_traits.hpp>
 #include <rest_rpc/base/consts.h>
 #include <rest_rpc/base/common.h>

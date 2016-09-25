@@ -35,7 +35,7 @@ namespace timax { namespace rpc
 
 	void connection::on_error(boost::system::error_code const& error)
 	{
-		SPD_LOG_DEBUG(error.message().c_str());
+		//SPD_LOG_DEBUG(error.message().c_str());
 
 		close();
 
@@ -96,7 +96,7 @@ namespace timax { namespace rpc
 
 	void connection::read_body()
 	{
-		if (head_.len <= PAGE_SIZE)
+		if (head_.len <= TIMAX_PAGE_SIZE)
 		{
 			async_read(socket_, boost::asio::buffer(usual_read_buffer_.data(), head_.len),
 				boost::bind(&connection::handle_read_body, this->shared_from_this(), asio_error));

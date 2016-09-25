@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	timax::log::get().init("bench_server.lg");
+	//timax::log::get().init("bench_server.lg");
 
 	std::atomic<uint64_t> success_count{ 0 };
 	auto port = boost::lexical_cast<uint16_t>(argv[1]);

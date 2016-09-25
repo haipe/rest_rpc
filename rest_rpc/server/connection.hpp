@@ -48,7 +48,7 @@ namespace timax { namespace rpc
 		ios_wrapper&						ios_wrapper_;
 		tcp::socket							socket_;
 		head_t								head_;
-		std::array<char, PAGE_SIZE>			usual_read_buffer_;
+		std::array<char, TIMAX_PAGE_SIZE>			usual_read_buffer_;
 		steady_timer_t						timer_;
 		duration_t							time_out_;
 
