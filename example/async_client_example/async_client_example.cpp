@@ -5,6 +5,7 @@ namespace client
 	TIMAX_DEFINE_PROTOCOL(add, int(int, int));
 	TIMAX_DEFINE_PROTOCOL(sub_add, int(int, int));
 	TIMAX_DEFINE_PROTOCOL(sub_not_exist, double(int, std::string const&));
+	TIMAX_DEFINE_PROTOCOL(void_arg, int(void));
 }
 
 using tcp = boost::asio::ip::tcp;
@@ -19,6 +20,10 @@ void async_client_rpc_example(tcp::endpoint const& endpoint)
 
 	// the interface is type safe and non-connect oriented designed
 	asycn_client->call(endpoint, client::add, 1.0, 200.0f);
+	asycn_client->call(endpoint, client::void_arg).when_error([](auto const& error)
+	{
+		std::cout << error.get_error_message() << std::endl;
+	});
 
 	// we can set some callbacks to process some specific eventsS
 	asycn_client->call(endpoint, client::add, 1, 2).when_ok([](auto r) 
@@ -57,7 +62,7 @@ void async_client_sub_example(tcp::endpoint const& endpoint)
 
 int main()
 {
-	timax::log::get().init("async_client_example.lg");
+	//timax::log::get().init("async_client_example.lg");
 
 	auto endpoint = timax::rpc::get_tcp_endpoint("127.0.0.1", 9000);
 	

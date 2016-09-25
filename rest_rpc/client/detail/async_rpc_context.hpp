@@ -74,15 +74,14 @@ namespace timax { namespace rpc
 
 		void error(error_code errcode, char const* message = nullptr)
 		{
-			err.set_code(errcode);
 			if (error_code::FAIL == errcode)
 			{
 				codec_policy cp{};
-				auto error_message = cp.template unpack<std::string>(rep.data(), rep.size());
-				err.set_message(std::move(error_message));
+				err = cp.template unpack<exception>(rep.data(), rep.size());
 			}
 			else
 			{
+				err.set_code(errcode);
 				if (nullptr != message)
 				{
 					err.set_message(message);

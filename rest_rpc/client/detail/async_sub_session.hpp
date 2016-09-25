@@ -251,7 +251,7 @@ namespace timax { namespace rpc
 
 			if (!error)
 			{
-				send_head_ = { 0 };
+                                send_head_ = { 0, 0, 0, 0 };
 				async_write(connection_.socket(), boost::asio::buffer(&send_head_, sizeof(head_t)),
 					boost::bind(&sub_session::handle_send_hb, this->shared_from_this(), boost::asio::placeholders::error));
 
