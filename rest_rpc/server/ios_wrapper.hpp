@@ -72,7 +72,7 @@ namespace timax { namespace rpc
 		void write_progress_entry(connection_ptr& conn_ptr, context_ptr& context)
 		{
 			assert(nullptr != context);
-			async_write(conn_ptr->socket(), context->get_message(), std::bind(
+			async_write(conn_ptr->socket(), context->get_message(), boost::bind(
 				&ios_wrapper::handle_write_entry, this, conn_ptr, context, asio_error));
 		}
 
@@ -97,7 +97,7 @@ namespace timax { namespace rpc
 			auto& conn_ptr = delay_messages.front().first;
 			auto& ctx_ptr = delay_messages.front().second;
 			
-			async_write(conn_ptr->socket(), ctx_ptr->get_message(), std::bind(
+			async_write(conn_ptr->socket(), ctx_ptr->get_message(), boost::bind(
 				&ios_wrapper::handle_write, this, std::move(delay_messages), asio_error));
 		}
 
