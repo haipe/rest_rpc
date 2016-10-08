@@ -9,25 +9,8 @@ namespace std
 {
 	template <int Size>
 	struct is_placeholder<boost::arg<Size>>
-		: std::integral_constant<int, Size>
+		: public std::integral_constant<int, Size>
 	{
-		// member types
-		using value_type = int;
-		using type = std::integral_constant<int, Size>;
-
-		// member constants
-		static constexpr value_type value = Size;
-
-		// member functions
-		operator int() const noexcept
-		{
-			return value;
-		}
-
-		int operator() () const noexcept
-		{
-			return value;
-		}
 	};
 }
 
@@ -213,6 +196,26 @@ namespace timax
 		using type = typename bind_traits<index_sequence_t, typename function_traits_t::result_type, args_tuple_t>::type;
 	};
 
+	template <typename T>
+	struct forward
+	{
+		template <typename T1>
+		static decltype(auto) apply(T1&& t1) noexcept
+		{
+			return std::forward<T>(t1);
+		}
+	};
+
+	template <int Size>
+	struct forward<boost::arg<Size>>
+	{
+		template <typename T1>
+		static auto apply(T1&& t1) noexcept
+		{
+			return t1;
+		}
+	};
+
 	template <typename F, typename Arg0, typename ... Args>
 	auto bind_impl(std::false_type /*IsNoPmf*/, F&& f, Arg0&& arg0, Args&& ... args)
 		-> typename bind_to_function<F, Arg0, Args...>::type
@@ -270,6 +273,6 @@ namespace timax
 	{
 		using is_pmf = typename std::is_member_function_pointer<F>::type;
 
-		return bind_impl(is_pmf{}, std::forward<F>(f), std::forward<Args>(args)...);
+		return bind_impl(is_pmf{}, std::forward<F>(f), forward<Args>::apply(args)...);
 	}
 }
