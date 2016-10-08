@@ -18,10 +18,10 @@ namespace timax
 {
 	 /*
 	  * 1. function type							==>	Ret(Args...)
-	  * 2. function pointer							==>	Ret(*)(Args...)
+	  * 2. function pointer						==>	Ret(*)(Args...)
 	  * 3. function reference						==>	Ret(&)(Args...)
 	  * 4. pointer to non-static member function	==> Ret(T::*)(Args...)
-	  * 5. function object and functor				==>> &T::operator()
+	  * 5. function object and functor				==> &T::operator()
 	  * 6. function with generic operator call		==> template <typeanme ... Args> &T::operator()
 	  */
 
@@ -51,24 +51,25 @@ namespace timax
 		using raw_tuple_type = std::tuple<Args...>;
 	};
 
-	//函数指针
+	// function pointer
 	template<typename Ret, typename... Args>
 	struct function_traits<Ret(*)(Args...)> : function_traits<Ret(Args...)> {};
 
-	//函数引用
+	// function reference
 	template<typename Ret, typename... Args>
 	struct function_traits<Ret(&)(Args...)> : function_traits<Ret(Args...)> {};
 
-	//std::function
+	// std::function
 	template <typename Ret, typename... Args>
 	struct function_traits<std::function<Ret(Args...)>> : function_traits<Ret(Args...)> {};
 
+	// pointer of non-static member function
 	TIMAX_FUNCTION_TRAITS()
 	TIMAX_FUNCTION_TRAITS(const)
 	TIMAX_FUNCTION_TRAITS(volatile)
 	TIMAX_FUNCTION_TRAITS(const volatile)
 
-	//函数对象
+	// functor
 	template<typename Callable>
 	struct function_traits : function_traits<decltype(&std::remove_reference_t<Callable>::operator())> {};
 
@@ -93,10 +94,12 @@ namespace timax
 
 namespace timax
 {
+	// tags for function overloaded resolution
 	struct caller_is_a_pointer {};
 	struct caller_is_a_smart_pointer {};
 	struct caller_is_a_reference {};
 
+	// voider ultility for SFINAE
 	template <typename ...>
 	struct voider
 	{
@@ -111,6 +114,7 @@ namespace timax
 	{
 	};
 
+	// this way of using SFINEA is type reference and cv qualifiers immuned
 	template <typename T>
 	struct is_smart_pointer<T,
 		voider_t<
@@ -196,6 +200,7 @@ namespace timax
 		using type = typename bind_traits<index_sequence_t, typename function_traits_t::result_type, args_tuple_t>::type;
 	};
 
+	// dealing with bugs from gcc, we cannot pass a constant reference of boost::arg<Size> object to std::bind
 	template <typename T>
 	struct forward
 	{
@@ -206,6 +211,7 @@ namespace timax
 		}
 	};
 
+	// thus, we wrap std::forward so that we can directly return a boost::arg<Size> object.
 	template <int Size>
 	struct forward<boost::arg<Size> const&>
 	{
@@ -241,21 +247,30 @@ namespace timax
 	auto bind_impl_pmf_no_placeholder(caller_is_a_pointer, F&& pmf, Caller&& caller)
 		-> typename function_traits<F>::stl_function_type
 	{
-		return [pmf, c = std::forward<Caller>(caller)](auto&& ... args) { return (c->*pmf)(std::forward<decltype(args)>(args)...); };
+		return [pmf, c = std::forward<Caller>(caller)](auto&& ... args) 
+		{ 
+			return (c->*pmf)(std::forward<decltype(args)>(args)...); 
+		};
 	}
 
 	template <typename F, typename Caller>
 	auto bind_impl_pmf_no_placeholder(caller_is_a_smart_pointer, F&& pmf, Caller&& caller)
 		-> typename function_traits<F>::stl_function_type
 	{
-		return [pmf, c = std::forward<Caller>(caller)](auto&& ... args) { return (c.get()->*pmf)(std::forward<decltype(args)>(args)...); };
+		return [pmf, c = std::forward<Caller>(caller)](auto&& ... args) 
+		{ 
+			return (c.get()->*pmf)(std::forward<decltype(args)>(args)...); 
+		};
 	}
 
 	template <typename F, typename Caller>
 	auto bind_impl_pmf_no_placeholder(caller_is_a_reference, F&& pmf, Caller&& caller)
 		-> typename function_traits<F>::stl_function_type
 	{
-		return [pmf, c = std::forward<Caller>(caller)](auto&& ... args) { return (c.*pmf)(std::forward<decltype(args)>(args)...); };
+		return [pmf, c = std::forward<Caller>(caller)](auto&& ... args) 
+		{
+			return (c.*pmf)(std::forward<decltype(args)>(args)...); 
+		};
 	}
 
 	template <typename F, typename Caller>
