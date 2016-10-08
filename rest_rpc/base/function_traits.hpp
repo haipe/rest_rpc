@@ -92,6 +92,33 @@ namespace timax
 
 namespace timax
 {
+	struct caller_is_a_pointer {};
+	struct caller_is_a_smart_pointer {};
+	struct caller_is_a_reference {};
+
+	template <typename ...>
+	struct voider
+	{
+		using type = void;
+	};
+
+	template <typename ... Args>
+	using voider_t = typename voider<Args...>::type;
+
+	template <typename T, typename = void>
+	struct is_smart_pointer : std::false_type
+	{
+	};
+
+	template <typename T>
+	struct is_smart_pointer<T,
+		voider_t<
+		decltype(std::declval<T>().operator ->()),
+		decltype(std::declval<T>().get())
+		>> : std::true_type
+	{
+	};
+
 	template <typename Arg0, typename Tuple>
 	struct push_front_to_tuple_type;
 
@@ -113,8 +140,8 @@ namespace timax
 	template <typename ArgsTuple, typename ... BindArgs>
 	struct make_bind_index_sequence_and_args_tuple;
 
-	template <>
-	struct make_bind_index_sequence_and_args_tuple<std::tuple<>>
+	template <typename ArgsTuple>
+	struct make_bind_index_sequence_and_args_tuple<ArgsTuple>
 	{
 		using index_sequence_type = std::index_sequence<>;
 		using args_tuple_type = std::tuple<>;
@@ -153,13 +180,15 @@ namespace timax
 		using type = typename function_helper<Ret, std::tuple_element_t<Is, ArgsTuple>...>::type;
 	};
 
-	template <typename F, typename ... Args>
+	template <typename F, typename Arg0, typename ... Args>
 	struct bind_to_function
 	{
 	private:
 		using function_traits_t = function_traits<F>;
 		using raw_args_tuple_t = typename function_traits_t::raw_tuple_type;
-		using make_bind_t = make_bind_index_sequence_and_args_tuple<raw_args_tuple_t, Args...>;
+		using make_bind_t = std::conditional_t<std::is_member_function_pointer<F>::value,
+			make_bind_index_sequence_and_args_tuple<raw_args_tuple_t, Args...>,
+			make_bind_index_sequence_and_args_tuple<raw_args_tuple_t, Arg0, Args...>>;
 		using index_sequence_t = typename make_bind_t::index_sequence_type;
 		using args_tuple_t = typename make_bind_t::args_tuple_type;
 	public:
@@ -182,37 +211,10 @@ namespace timax
 
 	template <typename F, typename Caller, typename Arg0, typename ... Args>
 	auto bind_impl(std::true_type /*IsPmf*/, F&& pmf, Caller&& caller, Arg0&& arg0, Args&& ... args)
-		-> typename bind_to_function<typename function_traits<F>::function_type, Arg0, Args...>::type
+		-> typename bind_to_function<F, Caller, Arg0, Args...>::type
 	{
 		return std::bind(pmf, std::forward<Caller>(caller), std::forward<Arg0>(arg0), std::forward<Args>(args)...);
 	}
-
-	template <typename ...>
-	struct voider
-	{
-		using type = void;
-	};
-
-	template <typename ... Args>
-	using voider_t = typename voider<Args...>::type;
-
-	template <typename T, typename = void>
-	struct is_smart_pointer : std::false_type
-	{
-	};
-
-	template <typename T>
-	struct is_smart_pointer<T, 
-		voider_t<
-			decltype(std::declval<T>().operator ->()),
-			decltype(std::declval<T>().get())
-		>> : std::true_type
-	{
-	};
-
-	struct caller_is_a_pointer {};
-	struct caller_is_a_smart_pointer {};
-	struct caller_is_a_reference {};
 
 	template <typename F, typename Caller>
 	auto bind_impl_pmf_no_placeholder(caller_is_a_pointer, F&& pmf, Caller&& caller)
@@ -225,7 +227,7 @@ namespace timax
 	auto bind_impl_pmf_no_placeholder(caller_is_a_smart_pointer, F&& pmf, Caller&& caller)
 		-> typename function_traits<F>::stl_function_type
 	{
-		return[pmf, c = std::forward<Caller>(caller)](auto&& ... args) { return (c.get()->*pmf)(std::forward<decltype(args)>(args)...); };
+		return [pmf, c = std::forward<Caller>(caller)](auto&& ... args) { return (c.get()->*pmf)(std::forward<decltype(args)>(args)...); };
 	}
 
 	template <typename F, typename Caller>
