@@ -113,8 +113,8 @@ namespace timax
 	template <typename T>
 	struct is_smart_pointer<T,
 		voider_t<
-		decltype(std::declval<T>().operator ->()),
-		decltype(std::declval<T>().get())
+			decltype(std::declval<T>().operator ->()),
+			decltype(std::declval<T>().get())
 		>> : std::true_type
 	{
 	};
