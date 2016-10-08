@@ -207,7 +207,7 @@ namespace timax
 	};
 
 	template <int Size>
-	struct forward<boost::arg<Size>>
+	struct forward<boost::arg<Size> const&>
 	{
 		template <typename T1>
 		static auto apply(T1&& t1) noexcept
