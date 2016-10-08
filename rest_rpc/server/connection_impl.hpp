@@ -124,8 +124,8 @@ namespace timax { namespace rpc
 		else if(head_.len <= MAX_BUF_LEN)
 		{
 			std::vector<char> read_buffer(head_.len, 0);
-			async_read(socket_, boost::asio::buffer(read_buffer), boost::bind(&connection::handle_read_body_pages, 
-				this->shared_from_this(), std::move(read_buffer), asio_error));
+			async_read(socket_, boost::asio::buffer(read_buffer), std::bind(&connection::handle_read_body_pages, 
+				this->shared_from_this(), std::move(read_buffer), std::placeholders::_1));
 		}
 		else
 		{

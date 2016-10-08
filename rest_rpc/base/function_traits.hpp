@@ -9,8 +9,26 @@ namespace std
 {
 	template <int Size>
 	struct is_placeholder<boost::arg<Size>>
-		: integral_constant<int, Size>
-	{};
+		: std::integral_constant<int, Size>
+	{
+		// member types
+		using value_type = int;
+		using type = std::integral_constant<int, Size>;
+
+		// member constants
+		static constexpr value_type value = Size;
+
+		// member functions
+		operator int() const noexcept
+		{
+			return value;
+		}
+
+		int operator() () const noexcept
+		{
+			return value;
+		}
+	};
 }
 
 namespace timax 
