@@ -1,4 +1,5 @@
 # [english wiki](https://github.com/topcpporg/rest_rpc/wiki/English)
+在此特别感谢社区的朋友刘丹将rest_rpc的中文说明翻译为英文。
 # rest_rpc
 modern, simple, easy to use rpc framework.
 # 真正好用的RPC框架rest_rpc
