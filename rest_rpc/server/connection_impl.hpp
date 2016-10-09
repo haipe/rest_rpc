@@ -35,7 +35,7 @@ namespace timax { namespace rpc
 
 	void connection::on_error(boost::system::error_code const& error)
 	{
-		SPD_LOG_DEBUG(error.message().c_str());
+		//SPD_LOG_DEBUG(error.message().c_str());
 
 		close();
 
