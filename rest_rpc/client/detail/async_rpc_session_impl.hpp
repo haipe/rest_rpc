@@ -76,6 +76,7 @@ namespace timax { namespace rpc
 	void rpc_session<CodecPolicy>::start_rpc_service()
 	{
 		status_ = status_t::running;
+		call_impl();
 		recv_head();
 		setup_heartbeat_timer();
 	}
