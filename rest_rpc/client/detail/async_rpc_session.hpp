@@ -11,6 +11,7 @@ namespace timax { namespace rpc
 		enum class status_t
 		{
 			stopped,
+			ready,
 			running,
 		};
 
