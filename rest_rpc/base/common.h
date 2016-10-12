@@ -38,11 +38,12 @@ namespace timax{ namespace rpc
 
 	enum class error_code 
 	{
-		UNKNOWN,			// init
-		FAIL,				// rpc调用失败
-		TIMEOUT,			// rpc超时
-		CANCEL,				// rpc主动取消
-		BADCONNECTION,		// 连接故障
+		OK,						// 没有错误
+		UNKNOWN,					// unknown error
+		FAIL,					// rpc调用失败
+		TIMEOUT,					// rpc超时
+		CANCEL,					// rpc主动取消
+		BADCONNECTION,			// 连接故障
 	};
 
 	//

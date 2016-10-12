@@ -113,6 +113,9 @@ namespace timax { namespace rpc
 		{
 			if(nullptr != barrier)
 				barrier->wait();
+
+			if (err)
+				throw err;
 		}
 
 		steady_timer_t						timer;
@@ -120,8 +123,8 @@ namespace timax { namespace rpc
 		tcp::endpoint							endpoint;
 		std::string							name;
 		head_t								head;
-		std::vector<char>						req;		// request buffer
-		std::vector<char>						rep;		// response buffer
+		std::vector<char>						req;				// request buffer
+		std::vector<char>						rep;				// response buffer
 		exception							err;
 		success_function_t					on_ok;
 		on_error_function_t					on_error;
