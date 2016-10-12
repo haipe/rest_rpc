@@ -97,8 +97,8 @@ namespace timax { namespace rpc
 			auto& conn_ptr = delay_messages.front().first;
 			auto& ctx_ptr = delay_messages.front().second;
 			
-			async_write(conn_ptr->socket(), ctx_ptr->get_message(), boost::bind(
-				&ios_wrapper::handle_write, this, std::move(delay_messages), asio_error));
+			async_write(conn_ptr->socket(), ctx_ptr->get_message(), std::bind(
+				&ios_wrapper::handle_write, this, std::move(delay_messages), std::placeholders::_1));
 		}
 
 	private:
