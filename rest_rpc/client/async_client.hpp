@@ -14,6 +14,7 @@ namespace timax { namespace rpc
 	template <typename CodecPolicy>
 	class async_client
 	{
+	public:
 		using codec_policy = CodecPolicy;
 		using lock_t = std::unique_lock<std::mutex>;
 		using work_ptr = std::unique_ptr<io_service_t::work>;
@@ -24,17 +25,25 @@ namespace timax { namespace rpc
 		using sub_manager_t = sub_manager<codec_policy>;
 
 		/******************* wrap context with type information *********************/
-		template <typename Ret>
 		friend class rpc_task_base;
 
-		template <typename Ret>
 		class rpc_task_base
 		{
 		public:
-			using result_type = Ret;
 			using context_ptr = typename rpc_session<codec_policy>::context_ptr;
 
 		public:
+			rpc_task_base(
+				async_client& client,
+				tcp::endpoint const& endpoint,
+				std::string const& name,
+				std::vector<char>&& buffer)
+				: rpc_task_base(client, std::make_shared<context_t>(
+					client.ios_, endpoint, name, std::move(buffer)))
+			{
+
+			}
+
 			rpc_task_base(async_client& client, context_ptr ctx)
 				: client_(client)
 				, ctx_(ctx)
@@ -62,13 +71,6 @@ namespace timax { namespace rpc
 			rpc_task_base& operator=(rpc_task_base const&) = delete;
 			rpc_task_base& operator=(rpc_task_base&&) = delete;
 
-			void wait(duration_t duration = duration_t::max()) &
-			{ 
-				ctx_->timeout = duration;
-				do_call_and_wait();
-			}
-
-		private:
 			void do_call_managed()
 			{
 				client_.call_impl(ctx_);
@@ -85,17 +87,17 @@ namespace timax { namespace rpc
 				}
 			}
 
-		protected:
+		public:
 			async_client&					client_;
 			context_ptr					ctx_;
 			bool							dismiss_;
 		};
 
 		template <typename Ret, typename = void>
-		class rpc_task : public rpc_task_base<Ret>
+		class rpc_task : protected rpc_task_base
 		{
 		public:
-			using base_type = rpc_task_base<Ret>;
+			using base_type = rpc_task_base;
 			using result_type = Ret;
 			using context_ptr = typename base_type::context_ptr;
 
@@ -136,7 +138,7 @@ namespace timax { namespace rpc
 				return std::move(*this);
 			}
 
-			result_type const& get(duration_t duration = duration_t::max()) &
+			void wait(duration_t duration = duration_t::max()) &
 			{
 				if (nullptr == result_)
 				{
@@ -148,7 +150,13 @@ namespace timax { namespace rpc
 					};
 				}
 
-				this->wait(duration);
+				ctx_->timeout = duration;
+				do_call_and_wait();
+			}
+
+			result_type const& get(duration_t duration = duration_t::max()) &
+			{
+				wait(duration);
 				return *result_;
 			}
 
@@ -157,10 +165,10 @@ namespace timax { namespace rpc
 		};
 
 		template <typename Dummy>
-		class rpc_task<void, Dummy> : public rpc_task_base<void>
+		class rpc_task<void, Dummy> : public rpc_task_base
 		{
 		public:
-			using base_type = rpc_task_base<void>;
+			using base_type = rpc_task_base;
 			using result_type = void;
 			using context_ptr = typename base_type::context_ptr;
 
@@ -188,6 +196,12 @@ namespace timax { namespace rpc
 			{
 				this->ctx_->timeout = t;
 				return std::move(*this);
+			}
+
+			void wait(duration_t duration = duration_t::max()) &
+			{
+				this->ctx_->timeout = duration;
+				this->do_call_and_wait();
 			}
 		};
 		
@@ -246,8 +260,7 @@ namespace timax { namespace rpc
 		}
 
 	private:
-
-		void call_impl(std::shared_ptr<context_t>& ctx)
+		void call_impl(context_ptr& ctx)
 		{
 			rpc_manager_.call(ctx);
 		}
