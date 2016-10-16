@@ -62,10 +62,10 @@ namespace timax{ namespace rpc
 
 	private:
 		tcp::socket				socket_;
-		tcp::endpoint			endpoint_;
-		size_t const			max_retry_count_;
+		tcp::endpoint				endpoint_;
+		size_t const				max_retry_count_;
 		size_t					retry_count_;
-		std::function<void()>	on_success_;
-		std::function<void()>	on_error_;
+		std::function<void()>		on_success_;
+		std::function<void()>		on_error_;
 	};
 } }

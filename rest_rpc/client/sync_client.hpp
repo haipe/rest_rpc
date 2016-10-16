@@ -28,7 +28,7 @@ namespace timax { namespace rpc
 		{
 			using result_type = typename Protocol::result_type;
 			auto task = client_->call(endpoint, protocol, std::forward<Args>(args)...);
-			return std::move(const_cast<result_type&>(task.get()));
+			return task.get();
 		}
 
 		template <typename Protocol, typename ... Args>

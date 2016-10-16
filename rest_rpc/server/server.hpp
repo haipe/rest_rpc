@@ -184,7 +184,6 @@ namespace timax { namespace rpc
 		io_service_pool				ios_pool_;
 		tcp::acceptor					acceptor_;
 		duration_t					time_out_;
-
 		mutable std::mutex			mutex_;
 		sub_container					subscribers_;
 	};

@@ -7,7 +7,7 @@ namespace timax { namespace rpc
 		: rpc_mgr_(mgr)
 		, hb_timer_(ios)
 		, connection_(ios, endpoint)
-		, status_(status_t::running)
+		, status_(status_t::ready)
 		, is_write_in_progress_(false)
 	{
 	}
@@ -36,9 +36,10 @@ namespace timax { namespace rpc
 	template <typename CodecPolicy>
 	void rpc_session<CodecPolicy>::call(context_ptr& ctx)
 	{
-		if (status_t::stopped == status_.load())
+		auto status = status_.load();
+		if (status_t::stopped == status)
 		{
-			ctx->error(error_code::BADCONNECTION);
+			ctx->error(error_code::BADCONNECTION, "rpc session already stoppet");
 			return;
 		}
 
@@ -58,7 +59,7 @@ namespace timax { namespace rpc
 			}
 		}
 
-		if (empty)
+		if (empty && status_t::running == status)
 		{
 			auto self = this->shared_from_this();
 			rpc_mgr_.get_io_service().post([self, this]
@@ -74,6 +75,8 @@ namespace timax { namespace rpc
 	template <typename CodecPolicy>
 	void rpc_session<CodecPolicy>::start_rpc_service()
 	{
+		status_ = status_t::running;
+		call_impl();
 		recv_head();
 		setup_heartbeat_timer();
 	}

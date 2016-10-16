@@ -234,7 +234,17 @@ namespace timax { namespace rpc
 			if (!error)
 			{
 				if (function_)
-					function_(response_.data(), response_.size());
+				{
+					try
+					{
+						function_(response_.data(), response_.size());
+					}
+					catch (exception const& error)
+					{
+						on_error(error);
+						return;
+					}
+				}
 
 				recv_sub_head();
 			}
