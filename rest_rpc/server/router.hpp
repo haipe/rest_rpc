@@ -130,7 +130,7 @@ namespace timax { namespace rpc
 			using args_tuple_t = typename function_traits<Handler>::tuple_type;
 			
 			// void return type
-			invoker_t invoker = [f = std::move(handler), post = std::move(post_func)]
+			invoker_t invoker = [f = std::forward<Handler>(handler), post = std::forward<PostFunc>(post_func)]
 				(connection_ptr conn, char const* data, size_t size)
 			{
 				codec_policy cp{};
@@ -147,7 +147,7 @@ namespace timax { namespace rpc
 		static invoker_t get_invoker(Handler&& handler, PostFunc&& post_func, std::false_type)
 		{
 			using args_tuple_t = typename function_traits<Handler>::tuple_type;
-			invoker_t invoker = [f = std::move(handler), post = std::move(post_func)]
+			invoker_t invoker = [f = std::forward<Handler>(handler), post = std::forward<PostFunc>(post_func)]
 				(connection_ptr conn, char const* data, size_t size)
 			{
 				codec_policy cp{};
@@ -169,7 +169,7 @@ namespace timax { namespace rpc
 		static invoker_t get_invoker(Handler&& handler, std::true_type)
 		{
 			using args_tuple_t = typename function_traits<Handler>::tuple_type;
-			invoker_t invoker = [f = std::move(handler)]
+			invoker_t invoker = [f = std::forward<Handler>(handler)]
 				(connection_ptr conn, char const* data, size_t size)
 			{
 				codec_policy cp{};
@@ -186,7 +186,7 @@ namespace timax { namespace rpc
 		static invoker_t get_invoker(Handler&& handler, std::false_type)
 		{
 			using args_tuple_t = typename function_traits<Handler>::tuple_type;
-			invoker_t invoker = [f = std::move(handler)]
+			invoker_t invoker = [f = std::forward<Handler>(handler)]
 				(connection_ptr conn, char const* data, size_t size)
 			{
 				codec_policy cp{};
@@ -204,7 +204,7 @@ namespace timax { namespace rpc
 		static invoker_t get_async_invoker(Handler&& handler, PostFunc&& post_func, std::true_type)
 		{
 			using args_tuple_t = typename function_traits<Handler>::tuple_type;
-			invoker_t invoker = [f = std::move(handler), post = std::move(post_func)]
+			invoker_t invoker = [f = std::forward<Handler>(handler), post = std::forward<PostFunc>(post_func)]
 				(connection_ptr conn, char const* data, size_t size)
 			{
 				codec_policy cp{};
@@ -225,7 +225,7 @@ namespace timax { namespace rpc
 		static invoker_t get_async_invoker(Handler&& handler, PostFunc&& post_func, std::false_type)
 		{
 			using args_tuple_t = typename function_traits<Handler>::tuple_type;
-			invoker_t invoker = [f = std::move(handler), post = std::move(post_func)]
+			invoker_t invoker = [f = std::forward<Handler>(handler), post = std::forward<PostFunc>(post_func)]
 				(connection_ptr conn, char const* data, size_t size)
 			{
 				codec_policy cp{};
@@ -251,7 +251,7 @@ namespace timax { namespace rpc
 		static invoker_t get_async_invoker(Handler&& handler, std::true_type)
 		{
 			using args_tuple_t = typename function_traits<Handler>::tuple_type;
-			invoker_t invoker = [f = std::move(handler)]
+			invoker_t invoker = [f = std::forward<Handler>(handler)]
 				(connection_ptr conn, char const* data, size_t size)
 			{
 				codec_policy cp{};
@@ -272,7 +272,7 @@ namespace timax { namespace rpc
 		static invoker_t get_async_invoker(Handler&& handler, std::false_type)
 		{
 			using args_tuple_t = typename function_traits<Handler>::tuple_type;
-			invoker_t invoker = [f = std::move(handler)]
+			invoker_t invoker = [f = std::forward<Handler>(handler)]
 				(connection_ptr conn, char const* data, size_t size)
 			{
 				codec_policy cp{};
