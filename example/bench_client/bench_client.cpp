@@ -1,11 +1,11 @@
-#include <rest_rpc/client.hpp>
+﻿#include <rest_rpc/client.hpp>
 
 namespace bench
 {
 	struct configure
 	{
-		std::string hostname;
-		std::string port;
+		std::string		hostname;
+		std::string		port;
 
 		META(hostname, port);
 	};
@@ -105,6 +105,12 @@ namespace bench
 
 		} }.detach();
 	}
+
+	void bench_conn(boost::asio::ip::tcp::endpoint const& endpoint, int connection_count)
+	{
+		using client_t = timax::rpc::async_client<timax::rpc::msgpack_codec>;
+
+	}
 }
 
 int main(int argc, char *argv[])
@@ -115,12 +121,14 @@ int main(int argc, char *argv[])
 	auto config = bench::get_config();
 	auto endpoint = timax::rpc::get_tcp_endpoint(
 		config.hostname, boost::lexical_cast<int16_t>(config.port));
+	int connection_count;
 
 	enum class client_style_t
 	{
 		UNKNOWN,
 		SYCN,
-		ASYCN
+		ASYCN,
+		CONN,
 	};
 
 	std::string client_style;
@@ -128,7 +136,7 @@ int main(int argc, char *argv[])
 
 	if (2 != argc)
 	{
-		std::cout << "Usage: " << "$ ./bench_server %s(sync or async)" << std::endl;
+		std::cout << "Usage: " << "$ ./bench_client %s(sync, async or conn)" << std::endl;
 		return -1;
 	}
 	else
@@ -142,10 +150,13 @@ int main(int argc, char *argv[])
 		{
 			style = client_style_t::ASYCN;
 		}
-
+		else if ("conn" == client_style)
+		{
+			style = client_style_t::CONN;
+		}
 		if (client_style_t::UNKNOWN == style)
 		{
-			std::cout << "Usage: " << "$ ./bench_server %s(sync or async)" << std::endl;
+			std::cout << "Usage: " << "$ ./bench_client %s(sync, async or conn)" << std::endl;
 			return -1;
 		}
 	}
@@ -157,6 +168,15 @@ int main(int argc, char *argv[])
 		break;
 	case client_style_t::ASYCN:
 		bench::bench_async(endpoint);
+		break;
+	case client_style_t::CONN:
+		if (3 != argc)
+		{
+			std::cout << "Usage:　" << "$ ./bench_conn conn %d(connection number)" << std::endl;
+			return -1;
+		}
+		connection_count = boost::lexical_cast<int>(argv[2]);
+		bench::bench_conn(endpoint, connection_count);
 		break;
 	default:
 		return -1;

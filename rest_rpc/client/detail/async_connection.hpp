@@ -50,7 +50,6 @@ namespace timax{ namespace rpc
 			}
 			else if (++retry_count_ < max_retry_count_ || 0 == max_retry_count_)
 			{
-
 				start_connect();
 			}
 			else

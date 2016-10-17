@@ -16,7 +16,6 @@ namespace timax { namespace rpc
 	{
 	public:
 		using codec_policy = CodecPolicy;
-		using lock_t = std::unique_lock<std::mutex>;
 		using work_ptr = std::unique_ptr<io_service_t::work>;
 		using context_t = rpc_context<codec_policy>;
 		using context_ptr = std::shared_ptr<context_t>;
@@ -150,8 +149,8 @@ namespace timax { namespace rpc
 					};
 				}
 
-				ctx_->timeout = duration;
-				do_call_and_wait();
+				this->ctx_->timeout = duration;
+				this->do_call_and_wait();
 			}
 
 			result_type const& get(duration_t duration = duration_t::max()) &
