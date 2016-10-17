@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
 	case client_style_t::CONN:
 		if (3 != argc)
 		{
-			std::cout << "Usage:　" << "$ ./bench_conn conn %d(connection number)" << std::endl;
+			std::cout << "Usage: " << "$ ./bench_client conn %d(connection count)" << std::endl;
 			return -1;
 		}
 		connection_count = boost::lexical_cast<int>(argv[2]);

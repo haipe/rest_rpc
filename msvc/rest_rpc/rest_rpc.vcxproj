@@ -20,6 +20,7 @@
     <ClInclude Include="..\..\rest_rpc\base\utils.hpp" />
     <ClInclude Include="..\..\rest_rpc\client.hpp" />
     <ClInclude Include="..\..\rest_rpc\client\async_client.hpp" />
+    <ClInclude Include="..\..\rest_rpc\client\detail\async_client_private.hpp" />
     <ClInclude Include="..\..\rest_rpc\client\detail\async_rpc_session.hpp" />
     <ClInclude Include="..\..\rest_rpc\client\detail\async_rpc_session_impl.hpp" />
     <ClInclude Include="..\..\rest_rpc\client\detail\async_sub_session.hpp" />
