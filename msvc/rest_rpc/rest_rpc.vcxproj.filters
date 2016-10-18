@@ -55,12 +55,6 @@
     <ClInclude Include="..\..\rest_rpc\forward.hpp" />
     <ClInclude Include="..\..\rest_rpc\rpc.hpp" />
     <ClInclude Include="..\..\rest_rpc\server.hpp" />
-    <ClInclude Include="..\..\rest_rpc\client\detail\async_rpc_session.hpp">
-      <Filter>client\detail</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\rest_rpc\client\detail\async_sub_session.hpp">
-      <Filter>client\detail</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\rest_rpc\client\detail\wait_barrier.hpp">
       <Filter>client\detail</Filter>
     </ClInclude>
@@ -68,9 +62,6 @@
       <Filter>client\detail</Filter>
     </ClInclude>
     <ClInclude Include="..\..\rest_rpc\client\detail\async_connection.hpp">
-      <Filter>client\detail</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\rest_rpc\client\detail\async_rpc_session_impl.hpp">
       <Filter>client\detail</Filter>
     </ClInclude>
     <ClInclude Include="..\..\rest_rpc\server\ios_wrapper.hpp">
@@ -86,6 +77,15 @@
       <Filter>server</Filter>
     </ClInclude>
     <ClInclude Include="..\..\rest_rpc\client\detail\async_client_private.hpp">
+      <Filter>client\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rest_rpc\client\detail\async_rpc_channel.hpp">
+      <Filter>client\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rest_rpc\client\detail\async_rpc_channel_impl.hpp">
+      <Filter>client\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rest_rpc\client\detail\async_sub_channel.hpp">
       <Filter>client\detail</Filter>
     </ClInclude>
   </ItemGroup>

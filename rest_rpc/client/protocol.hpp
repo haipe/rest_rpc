@@ -12,11 +12,11 @@ namespace timax { namespace rpc
 	private:
 		template <typename T>
 		static std::false_type test(...);
-
+	
 		template <typename T, typename =
 			decltype(std::declval<T>()(std::declval<Args>()...))>
 		static std::true_type test(int);
-
+	
 		using result_type = decltype(test<Func>(0));
 	public:
 		static constexpr bool value = result_type::value;

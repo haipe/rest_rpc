@@ -6,7 +6,7 @@ namespace timax { namespace rpc
 	class rpc_manager;
 
 	template <typename CodecPolicy>
-	class rpc_session : public std::enable_shared_from_this<rpc_session<CodecPolicy>>
+	class rpc_channel : public std::enable_shared_from_this<rpc_channel<CodecPolicy>>
 	{
 		enum class status_t
 		{
@@ -25,8 +25,8 @@ namespace timax { namespace rpc
 		using call_map_t = typename rpc_call_container_t::call_map_t;
 			
 	public:
-		inline rpc_session(rpc_manager_t& mgr, io_service_t& ios, tcp::endpoint const& endpoint);
-		inline ~rpc_session();
+		inline rpc_channel(rpc_manager_t& mgr, io_service_t& ios, tcp::endpoint const& endpoint);
+		inline ~rpc_channel();
 		inline void start();
 		inline void call(context_ptr& ctx);
 
@@ -67,15 +67,15 @@ namespace timax { namespace rpc
 	class rpc_manager
 	{
 		template <typename>
-		friend class rpc_session;
+		friend class rpc_channel;
 
 	public:
 		using codec_policy = CodecPolicy;
-		using rpc_session_t = rpc_session<codec_policy>;
-		using session_map_t = std::map<tcp::endpoint, std::shared_ptr<rpc_session_t>>;
-		using session_ptr = std::shared_ptr<rpc_session_t>;
-		using context_ptr = typename rpc_session_t::context_ptr;
-		using context_t = typename rpc_session_t::context_t;
+		using rpc_channel_t = rpc_channel<codec_policy>;
+		using session_map_t = std::map<tcp::endpoint, std::shared_ptr<rpc_channel_t>>;
+		using session_ptr = std::shared_ptr<rpc_channel_t>;
+		using context_ptr = typename rpc_channel_t::context_ptr;
+		using context_t = typename rpc_channel_t::context_t;
 
 	public:
 		inline explicit rpc_manager(io_service_t& ios);

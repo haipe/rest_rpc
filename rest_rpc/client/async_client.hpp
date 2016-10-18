@@ -3,10 +3,10 @@
 #include "detail/wait_barrier.hpp"
 // for rpc in async client
 #include "detail/async_rpc_context.hpp"
-#include "detail/async_rpc_session.hpp"
-#include "detail/async_rpc_session_impl.hpp"
+#include "detail/async_rpc_channel.hpp"
+#include "detail/async_rpc_channel_impl.hpp"
 // for rpc in async client
-#include "detail/async_sub_session.hpp"
+#include "detail/async_sub_channel.hpp"
 #include "detail/async_client_private.hpp"
 
 namespace timax { namespace rpc
