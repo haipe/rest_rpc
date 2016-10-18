@@ -54,7 +54,7 @@ namespace bench
 	template <typename Server>
 	void count_connection(Server& server, std::atomic<uint64_t>& conn_count)
 	{
-		server.register_handler("bench_conn", [&conn_count]()
+		server.register_handler("bench_connection", [&conn_count]()
 		{
 			++conn_count;
 		});

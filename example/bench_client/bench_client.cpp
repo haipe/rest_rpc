@@ -32,6 +32,7 @@ namespace bench
 	}
 
 	TIMAX_DEFINE_PROTOCOL(add, int(int, int));
+	TIMAX_DEFINE_PROTOCOL(bench_connection, void(void));
 
 	std::atomic<uint64_t> count{ 0 };
 
@@ -108,7 +109,37 @@ namespace bench
 
 	void bench_conn(boost::asio::ip::tcp::endpoint const& endpoint, int connection_count)
 	{
-		using client_t = timax::rpc::async_client<timax::rpc::msgpack_codec>;
+		using namespace std::chrono_literals;
+		using client_private_t = timax::rpc::async_client_private<timax::rpc::msgpack_codec>;
+
+		auto pool = std::make_shared<timax::rpc::io_service_pool>(std::thread::hardware_concurrency());
+		pool->start();
+
+		std::thread
+		{
+			[pool, &endpoint, connection_count]
+			{
+				
+				std::list<client_private_t> client;
+				auto const push_in_one_turn = 2048;
+				auto already_pushed = 0;
+				auto push_left = connection_count;
+				while (true)
+				{
+					while (already_pushed < push_in_one_turn && push_left > 0)
+					{
+						client.emplace_back(pool->get_io_service());
+						auto ctx = client.back().make_rpc_context(endpoint, bench_connection);
+						client.back().call(ctx);
+						++already_pushed;
+						--push_left;
+					}
+					already_pushed = 0;
+					std::this_thread::sleep_for(20ms);
+				}
+			} 
+
+		}.detach();
 
 	}
 }
@@ -134,7 +165,7 @@ int main(int argc, char *argv[])
 	std::string client_style;
 	client_style_t style = client_style_t::UNKNOWN;
 
-	if (2 != argc)
+	if (2 > argc)
 	{
 		std::cout << "Usage: " << "$ ./bench_client %s(sync, async or conn)" << std::endl;
 		return -1;

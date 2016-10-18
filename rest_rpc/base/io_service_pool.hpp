@@ -53,6 +53,11 @@ namespace timax { namespace rpc
 		{
 		}
 
+		~io_service_pool()
+		{
+			stop();
+		}
+
 		void start()
 		{
 			for (auto& ios_worker : ios_workers_)
