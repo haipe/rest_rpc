@@ -352,7 +352,6 @@ namespace timax { namespace rpc
 			}
 		}
 
-	private:
 		void sub_impl(tcp::endpoint const& endpoint, std::string const& topic, sub_channel_ptr& channel)
 		{
 			lock_t lock{ mutex_ };
