@@ -2,16 +2,20 @@
 
 namespace timax { namespace rpc 
 {
+	template <typename CodecPolicy>
+	inline auto make_rpc_context(io_service_t& ios, tcp::endpoint const& endpoint,
+		std::string const& name, CodecPolicy const&, typename CodecPolicy::buffer_type&& buffer)
+	{
+		using context_t = rpc_context<CodecPolicy>;
+		return std::make_shared<context_t>(ios, endpoint, name, std::move(buffer));
+	}
+
 	template <typename CodecPolicy, typename Protocol, typename ... Args>
 	inline auto make_rpc_context(io_service_t& ios, tcp::endpoint const& endpoint, 
 		CodecPolicy const& cp, Protocol const& protocol, Args&& ... args)
 	{
-		using result_type = typename Protocol::result_type;
-		using context_t = rpc_context<CodecPolicy>;
 		auto buffer = protocol.pack_args(cp, std::forward<Args>(args)...);
-
-		return std::make_shared<context_t>(ios, 
-			endpoint, protocol.name(), std::move(buffer));
+		return make_rpc_context(ios, endpoint, protocol.name(), cp, std::move(buffer));
 	}
 
 	template <typename CodecPolicy>
@@ -124,7 +128,6 @@ namespace timax { namespace rpc
 			}
 		}
 
-	protected:
 		client_private_t&		client_;
 		context_ptr			ctx_;
 		bool					dismiss_;
