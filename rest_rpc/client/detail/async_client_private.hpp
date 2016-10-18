@@ -226,7 +226,7 @@ namespace timax { namespace rpc
 		template <typename F>
 		typed_rpc_task&& on_ok(F&& f) &&
 		{
-			this->ctx_->on_ok = [func = std::forward<F>(f)](char const* data, size_t size) { f(); };
+			this->ctx_->on_ok = [func = std::forward<F>(f)](char const* data, size_t size) { func(); };
 			return std::move(*this);
 		}
 

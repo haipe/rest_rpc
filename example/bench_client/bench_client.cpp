@@ -118,8 +118,7 @@ namespace bench
 		std::thread
 		{
 			[pool, &endpoint, connection_count]
-			{
-				
+			{	
 				std::list<client_private_t> client;
 				auto const push_in_one_turn = 2048;
 				auto already_pushed = 0;
