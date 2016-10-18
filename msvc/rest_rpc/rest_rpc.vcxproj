@@ -16,6 +16,7 @@
     <ClInclude Include="..\..\rest_rpc\base\consts.h" />
     <ClInclude Include="..\..\rest_rpc\base\excetion.hpp" />
     <ClInclude Include="..\..\rest_rpc\base\function_traits.hpp" />
+    <ClInclude Include="..\..\rest_rpc\base\io_service_pool.hpp" />
     <ClInclude Include="..\..\rest_rpc\base\log.hpp" />
     <ClInclude Include="..\..\rest_rpc\base\utils.hpp" />
     <ClInclude Include="..\..\rest_rpc\client.hpp" />
@@ -36,6 +37,7 @@
     <ClInclude Include="..\..\rest_rpc\server\connection_impl.hpp" />
     <ClInclude Include="..\..\rest_rpc\server\context.hpp" />
     <ClInclude Include="..\..\rest_rpc\server\ios_wrapper.hpp" />
+    <ClInclude Include="..\..\rest_rpc\server\ios_wrapper_impl.hpp" />
     <ClInclude Include="..\..\rest_rpc\server\router.hpp" />
     <ClInclude Include="..\..\rest_rpc\server\server.hpp" />
   </ItemGroup>

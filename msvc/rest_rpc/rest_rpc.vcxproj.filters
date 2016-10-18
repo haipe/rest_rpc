@@ -88,5 +88,11 @@
     <ClInclude Include="..\..\rest_rpc\client\detail\async_sub_channel.hpp">
       <Filter>client\detail</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\rest_rpc\server\ios_wrapper_impl.hpp">
+      <Filter>server</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rest_rpc\base\io_service_pool.hpp">
+      <Filter>base</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

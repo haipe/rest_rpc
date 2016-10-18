@@ -2,10 +2,10 @@
 
 namespace timax { namespace rpc 
 {
-	connection::connection(ios_wrapper& ios, duration_t time_out)
+	connection::connection(io_service_t& ios, duration_t time_out)
 		: ios_wrapper_(ios)
-		, socket_(ios_wrapper_.get_ios())
-		, timer_(ios_wrapper_.get_ios())
+		, socket_(ios)
+		, timer_(ios)
 		, time_out_(time_out)
 	{
 	}

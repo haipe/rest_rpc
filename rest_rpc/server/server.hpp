@@ -16,7 +16,7 @@ namespace timax { namespace rpc
 	public:
 		server(uint16_t port, size_t pool_size, duration_t time_out = duration_t::max())
 			: ios_pool_(pool_size)
-			, acceptor_(ios_pool_.get_ios_wrapper().get_ios(), tcp::endpoint{tcp::v4(), port})
+			, acceptor_(ios_pool_.get_io_service(), tcp::endpoint{tcp::v4(), port})
 			, time_out_(time_out)
 		{
 			init_callback_functions();
@@ -161,7 +161,7 @@ namespace timax { namespace rpc
 		void do_accept()
 		{
 			auto new_connection = std::make_shared<connection>(
-				ios_pool_.get_ios_wrapper(), time_out_);
+				ios_pool_.get_io_service(), time_out_);
 
 			acceptor_.async_accept(new_connection->socket(), 
 				[this, new_connection](boost::system::error_code const& error)

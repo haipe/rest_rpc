@@ -96,10 +96,10 @@ int main(int argc, char *argv[])
 	switch (bench_type)
 	{
 	case bench::type_t::connection:
-		bench::count_qps(server, work_count);
+		bench::count_connection(server, work_count);
 		break;
 	case  bench::type_t::operation:
-		bench::count_connection(server, work_count);
+		bench::count_qps(server, work_count);
 		break;
 	}
 	

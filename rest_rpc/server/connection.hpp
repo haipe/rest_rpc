@@ -2,7 +2,6 @@
 
 namespace timax { namespace rpc 
 {
-
 	class ios_wrapper;
 
 	class connection : public std::enable_shared_from_this<connection>
@@ -19,7 +18,7 @@ namespace timax { namespace rpc
 		using connection_on_read_pages_t = std::function<void(connection_ptr, std::vector<char>)>;
 
 	public:
-		connection(ios_wrapper& ios, duration_t time_out);
+		connection(io_service_t& ios, duration_t time_out);
 		void close();
 
 	protected:
@@ -48,7 +47,7 @@ namespace timax { namespace rpc
 		void handle_read_body_pages(std::vector<char>& read_buffer, boost::system::error_code const& error);
 
 	private:
-		ios_wrapper&						ios_wrapper_;
+		ios_wrapper						ios_wrapper_;
 		tcp::socket						socket_;
 		head_t							head_;
 		std::array<char, PAGE_SIZE>		usual_read_buffer_;
