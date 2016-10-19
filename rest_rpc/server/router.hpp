@@ -16,12 +16,15 @@ namespace timax { namespace rpc
 		template <typename Handler, typename PostFunc>
 		bool register_invoker(std::string const& name, Handler&& handler, PostFunc&& post_func)
 		{
-			using is_void_t = std::is_void<typename function_traits<Handler>::result_type>;
+			using handler_traits_type = handler_traits<Handler>;
+			using invoker_traits_type = invoker_traits<
+				typename handler_traits_type::return_tag, handler_exec_sync>;
 
-			if (invokers_.find(name) != invokers_.end())
+			if(invokers_.find(name) != invokers_.end())
 				return false;
 
-			auto invoker = get_invoker(std::forward<Handler>(handler), std::forward<PostFunc>(post_func), is_void_t{});
+			auto invoker = invoker_traits_type::template get<codec_policy>(
+				std::forward<Handler>(handler), std::forward<PostFunc>(post_func));
 			invokers_.emplace(name, std::move(invoker));
 			return true;
 		}
@@ -29,12 +32,14 @@ namespace timax { namespace rpc
 		template <typename Handler>
 		bool register_invoker(std::string const& name, Handler&& handler)
 		{
-			using is_void_t = std::is_void<typename function_traits<Handler>::result_type>;
+			using handler_traits_type = handler_traits<Handler>;
+			using invoker_traits_type = invoker_traits<
+				typename handler_traits_type::return_tag, handler_exec_sync>;
 
 			if (invokers_.find(name) != invokers_.end())
 				return false;
 
-			auto invoker = get_invoker(std::forward<Handler>(handler), is_void_t{});
+			auto invoker = invoker_traits_type::template get<codec_policy>(std::forward<Handler>(handler));
 			invokers_.emplace(name, std::move(invoker));
 			return true;
 		}
@@ -42,12 +47,15 @@ namespace timax { namespace rpc
 		template <typename Handler, typename PostFunc>
 		bool async_register_invoker(std::string const& name, Handler&& handler, PostFunc&& post_func)
 		{
-			using is_void_t = std::is_void<typename function_traits<Handler>::result_type>;
+			using handler_traits_type = handler_traits<Handler>;
+			using invoker_traits_type = invoker_traits<
+				typename handler_traits_type::return_tag, handler_exec_async>;
 
 			if (invokers_.find(name) != invokers_.end())
 				return false;
 
-			auto invoker = get_async_invoker(std::forward<Handler>(handler), std::forward<PostFunc>(post_func), is_void_t{});
+			auto invoker = invoker_traits_type::template get<codec_policy>(
+				std::forward<Handler>(handler), std::forward<PostFunc>(post_func));
 			invokers_.emplace(name, std::move(invoker));
 			return true;
 		}
@@ -55,12 +63,14 @@ namespace timax { namespace rpc
 		template <typename Handler>
 		bool async_register_invoker(std::string const& name, Handler&& handler)
 		{
-			using is_void_t = std::is_void<typename function_traits<Handler>::result_type>;
+			using handler_traits_type = handler_traits<Handler>;
+			using invoker_traits_type = invoker_traits<
+				typename handler_traits_type::return_tag, handler_exec_async>;
 
 			if (invokers_.find(name) != invokers_.end())
 				return false;
 
-			auto invoker = get_async_invoker(std::forward<Handler>(handler), is_void_t{});
+			auto invoker = invoker_traits_type::template get<codec_policy>(std::forward<Handler>(handler));
 			invokers_.emplace(name, std::move(invoker));
 			return true;
 		}
@@ -103,193 +113,6 @@ namespace timax { namespace rpc
 				}
 			}
 		}
-
-	private:
-		template <typename Func, typename ArgsTuple, size_t ... Is>
-		static auto call_helper_impl(Func&& f, ArgsTuple&& args_tuple, std::false_type, std::index_sequence<Is...>)
-		{
-			return f(std::forward<std::tuple_element_t<Is, std::remove_reference_t<ArgsTuple>>>(std::get<Is>(args_tuple))...);
-		}
-
-		template <typename Func, typename ArgsTuple, size_t ... Is>
-		static auto call_helper_impl(Func&& f, ArgsTuple&& args_tuple, std::true_type, std::index_sequence<Is...>)
-		{
-			f(std::forward<std::tuple_element_t<Is, std::remove_reference_t<ArgsTuple>>>(std::get<Is>(args_tuple))...);
-		}
-
-		template <typename Func, typename ArgsTuple, typename IsVoid>
-		static auto call_helper(Func&& f, ArgsTuple&& args_tuple, IsVoid is_void)
-		{
-			using indices_type = std::make_index_sequence<std::tuple_size<std::remove_reference_t<ArgsTuple>>::value>;
-			return call_helper_impl(std::forward<Func>(f), std::forward<ArgsTuple>(args_tuple), is_void, indices_type{});
-		}
-
-		template <typename Handler, typename PostFunc>
-		static invoker_t get_invoker(Handler&& handler, PostFunc&& post_func, std::true_type)
-		{
-			using args_tuple_t = typename function_traits<Handler>::tuple_type;
-			
-			// void return type
-			invoker_t invoker = [f = std::forward<Handler>(handler), post = std::forward<PostFunc>(post_func)]
-				(connection_ptr conn, char const* data, size_t size)
-			{
-				codec_policy cp{};
-				auto args_tuple = cp.template unpack<args_tuple_t>(data, size);
-				call_helper(f, args_tuple, std::true_type{});
-				auto ctx = context_t::make_message(conn->head_, context_t::message_t{}, [conn, &post] { post(conn); });
-				conn->response(ctx);
-			};
-			
-			return invoker;
-		}
-
-		template <typename Handler, typename PostFunc>
-		static invoker_t get_invoker(Handler&& handler, PostFunc&& post_func, std::false_type)
-		{
-			using args_tuple_t = typename function_traits<Handler>::tuple_type;
-			invoker_t invoker = [f = std::forward<Handler>(handler), post = std::forward<PostFunc>(post_func)]
-				(connection_ptr conn, char const* data, size_t size)
-			{
-				codec_policy cp{};
-				auto args_tuple = cp.template unpack<args_tuple_t>(data, size);
-				auto result = call_helper(f, args_tuple, std::false_type{});
-				auto message = cp.pack(result);
-				auto ctx = context_t::make_message(conn->head_, std::move(message),
-					[conn, &post, r = std::move(result)]
-				{
-					post(conn, r);
-				});
-				conn->response(ctx);
-			};
-			
-			return invoker;
-		}
-
-		template <typename Handler>
-		static invoker_t get_invoker(Handler&& handler, std::true_type)
-		{
-			using args_tuple_t = typename function_traits<Handler>::tuple_type;
-			invoker_t invoker = [f = std::forward<Handler>(handler)]
-				(connection_ptr conn, char const* data, size_t size)
-			{
-				codec_policy cp{};
-				auto args_tuple = cp.template unpack<args_tuple_t>(data, size);
-				call_helper(f, args_tuple, std::true_type{});
-				auto ctx = context_t::make_message(conn->head_, context_t::message_t{});
-				conn->response(ctx);
-			};
-
-			return invoker;
-		}
-
-		template <typename Handler>
-		static invoker_t get_invoker(Handler&& handler, std::false_type)
-		{
-			using args_tuple_t = typename function_traits<Handler>::tuple_type;
-			invoker_t invoker = [f = std::forward<Handler>(handler)]
-				(connection_ptr conn, char const* data, size_t size)
-			{
-				codec_policy cp{};
-				auto args_tuple = cp.template unpack<args_tuple_t>(data, size);
-				auto result = call_helper(f, args_tuple, std::false_type{});
-				auto message = cp.pack(result);
-				auto ctx = context_t::make_message(conn->head_, std::move(message));
-				conn->response(ctx);
-			};
-
-			return invoker;
-		}
-
-		template <typename Handler, typename PostFunc>
-		static invoker_t get_async_invoker(Handler&& handler, PostFunc&& post_func, std::true_type)
-		{
-			using args_tuple_t = typename function_traits<Handler>::tuple_type;
-			invoker_t invoker = [f = std::forward<Handler>(handler), post = std::forward<PostFunc>(post_func)]
-				(connection_ptr conn, char const* data, size_t size)
-			{
-				codec_policy cp{};
-				auto args_tuple = cp.template unpack<args_tuple_t>(data, size);
-			
-				std::async([conn, args = std::move(args_tuple), h = conn->head_, &f, &post]
-				{
-					call_helper(f, args, std::true_type{});
-					auto ctx = context_t::make_message(h, context_t::message_t{}, [conn, &post] { post(conn); });
-					conn->response(ctx);
-				});
-			};
-
-			return invoker;
-		}
-
-		template <typename Handler, typename PostFunc>
-		static invoker_t get_async_invoker(Handler&& handler, PostFunc&& post_func, std::false_type)
-		{
-			using args_tuple_t = typename function_traits<Handler>::tuple_type;
-			invoker_t invoker = [f = std::forward<Handler>(handler), post = std::forward<PostFunc>(post_func)]
-				(connection_ptr conn, char const* data, size_t size)
-			{
-				codec_policy cp{};
-				auto args_tuple = cp.template unpack<args_tuple_t>(data, size);
-
-				std::async([conn, args = std::move(args_tuple), h = conn->head_, &f, &post]
-				{
-					auto result = call_helper(f, args, std::false_type{});
-					auto message = codec_policy{}.pack(result);
-					auto ctx = context_t::make_message(h, std::move(message),
-						[conn, &post, r = std::move(result)]
-					{
-						post(conn, r);
-					});
-					conn->response(ctx);
-				});
-			};
-
-			return invoker;
-		}
-
-		template <typename Handler>
-		static invoker_t get_async_invoker(Handler&& handler, std::true_type)
-		{
-			using args_tuple_t = typename function_traits<Handler>::tuple_type;
-			invoker_t invoker = [f = std::forward<Handler>(handler)]
-				(connection_ptr conn, char const* data, size_t size)
-			{
-				codec_policy cp{};
-				auto args_tuple = cp.template unpack<args_tuple_t>(data, size);
-
-				std::async([conn, args = std::move(args_tuple), h = conn->head_, &f]
-				{
-					call_helper(f, args, std::false_type{});
-					auto ctx = context_t::make_message(h, context_t::message_t{});
-					conn->response(ctx);
-				});
-			};
-
-			return invoker;
-		}
-
-		template <typename Handler>
-		static invoker_t get_async_invoker(Handler&& handler, std::false_type)
-		{
-			using args_tuple_t = typename function_traits<Handler>::tuple_type;
-			invoker_t invoker = [f = std::forward<Handler>(handler)]
-				(connection_ptr conn, char const* data, size_t size)
-			{
-				codec_policy cp{};
-				auto args_tuple = cp.template unpack<args_tuple_t>(data, size);
-
-				std::async([conn, args = std::move(args_tuple), h = conn->head_, &f]
-				{
-					auto result = call_helper(f, args, std::false_type{});
-					auto message = codec_policy{}.pack(result);
-					auto ctx = context_t::make_message(h, std::move(message));
-					conn->response(ctx);
-				});
-			};
-
-			return invoker;
-		}
-
 	private:
 		// mutable std::mutex		mutex_;
 		invoker_map_t				invokers_;

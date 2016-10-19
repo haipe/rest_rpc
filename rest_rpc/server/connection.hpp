@@ -7,8 +7,9 @@ namespace timax { namespace rpc
 	class connection : public std::enable_shared_from_this<connection>
 	{
 	public:
-		template <typename CodecPolicy> friend class server;
-		template <typename CodecPolicy> friend class router;
+		template <typename> friend class server;
+		template <typename> friend class router;
+		template <typename, typename> friend struct invoker_traits;
 		friend class ios_wrapper;
 
 		using connection_ptr = std::shared_ptr<connection>;

@@ -94,5 +94,8 @@
     <ClInclude Include="..\..\rest_rpc\base\io_service_pool.hpp">
       <Filter>base</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\rest_rpc\server\invoker_traits.hpp">
+      <Filter>server</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

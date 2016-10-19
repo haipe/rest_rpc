@@ -3,7 +3,7 @@
 //member function
 #define TIMAX_FUNCTION_TRAITS(...)\
 template <typename ReturnType, typename ClassType, typename... Args>\
-struct function_traits<ReturnType(ClassType::*)(Args...) __VA_ARGS__> : function_traits<ReturnType(Args...)>{};\
+struct function_traits_impl<ReturnType(ClassType::*)(Args...) __VA_ARGS__> : function_traits_impl<ReturnType(Args...)>{};\
 
 namespace std
 {
@@ -24,14 +24,16 @@ namespace timax
 	  * 5. function object and functor				==> &T::operator()
 	  * 6. function with generic operator call		==> template <typeanme ... Args> &T::operator()
 	  */
+	template <typename T>
+	struct function_traits_impl;
 
-	//转换为std::function和函数指针 
 	template<typename T>
-	struct function_traits;
+	struct function_traits : function_traits_impl<
+		std::remove_cv_t<std::remove_reference_t<T>>>
+	{};
 
-	//普通函数
 	template<typename Ret, typename... Args>
-	struct function_traits<Ret(Args...)>
+	struct function_traits_impl<Ret(Args...)>
 	{
 	public:
 		enum { arity = sizeof...(Args) };
@@ -53,15 +55,11 @@ namespace timax
 
 	// function pointer
 	template<typename Ret, typename... Args>
-	struct function_traits<Ret(*)(Args...)> : function_traits<Ret(Args...)> {};
-
-	// function reference
-	template<typename Ret, typename... Args>
-	struct function_traits<Ret(&)(Args...)> : function_traits<Ret(Args...)> {};
+	struct function_traits_impl<Ret(*)(Args...)> : function_traits<Ret(Args...)> {};
 
 	// std::function
 	template <typename Ret, typename... Args>
-	struct function_traits<std::function<Ret(Args...)>> : function_traits<Ret(Args...)> {};
+	struct function_traits_impl<std::function<Ret(Args...)>> : function_traits_impl<Ret(Args...)> {};
 
 	// pointer of non-static member function
 	TIMAX_FUNCTION_TRAITS()
@@ -71,7 +69,7 @@ namespace timax
 
 	// functor
 	template<typename Callable>
-	struct function_traits : function_traits<decltype(&std::remove_reference_t<Callable>::operator())> {};
+	struct function_traits_impl : function_traits_impl<decltype(&Callable::operator())> {};
 
 	template <typename Function>
 	typename function_traits<Function>::stl_function_type to_function(const Function& lambda)
