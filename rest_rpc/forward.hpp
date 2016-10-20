@@ -9,6 +9,7 @@
 #include <boost/thread/thread.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/asio/steady_timer.hpp>
+#include <boost/algorithm/string.hpp>
 
 // standard libraries
 #include <cstdint>

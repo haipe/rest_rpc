@@ -260,7 +260,7 @@ namespace timax { namespace rpc
 		{
 			using args_tuple_type = typename handler_traits<Handler>::tuple_type;
 			invoker_t invoker = [h = std::forward<Handler>(handler), p = std::forward<PostFunc>(post_func)]
-			(std::shared_ptr<connection> conn, char const* data, size_t size)
+				(std::shared_ptr<connection> conn, char const* data, size_t size)
 			{
 				CodecPolicy cp{};
 				auto args_tuple = cp.template unpack<args_tuple_type>(data, size);
