@@ -40,18 +40,17 @@ namespace timax{ namespace rpc
 		std::vector<std::string> address_port_list;
 		boost::split(address_port_list, address_port_string_list, boost::is_any_of(" ,|"));
 		std::vector<tcp::endpoint> tcp_endpoints;
-		std::transform(address_port_list.begin(), address_port_list.end(), std::back_inserter(tcp_endpoints),
-			[](auto const& address_port) -> tcp::endpoint
+		for (auto const& address_port : address_port_list)
 		{
 			auto pos = address_port.rfind(':');
-			if (pos == std::string::npos)
-				throw std::runtime_error{ "Bad address format!" };
-			return
+			if (std::string::npos != pos)
 			{
-				boost::asio::ip::address::from_string(address_port.substr(0, pos)),
-				boost::lexical_cast<uint16_t>(address_port.substr(pos + 1))
-			};
-		});
+				tcp_endpoints.emplace_back(
+					boost::asio::ip::address::from_string(address_port.substr(0, pos)),
+					boost::lexical_cast<uint16_t>(address_port.substr(pos + 1))
+				);
+			}
+		}
 
 		return tcp_endpoints;
 	}

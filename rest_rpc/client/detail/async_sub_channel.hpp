@@ -116,7 +116,7 @@ namespace timax { namespace rpc
 				&sub_channel::handle_sub_head, this->shared_from_this(), asio_error));
 		}
 
-		void on_error(exception const& exception)
+		void on_error(exception const& exception) 
 		{
 			if (error_)
 			{
