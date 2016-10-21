@@ -3,7 +3,7 @@
 	url = https://github.com/gabime/spdlog.git
 [submodule "thread-pool-cpp"]
 	path = thread-pool-cpp
-	url = https://github.com/inkooboo/thread-pool-cpp.git
+	url = https://github.com/topcpporg/thread-pool-cpp.git
 [submodule "Kapok"]
 	path = Kapok
 	url = https://github.com/qicosmos/Kapok.git
