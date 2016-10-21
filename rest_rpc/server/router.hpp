@@ -75,6 +75,24 @@ namespace timax { namespace rpc
 			return true;
 		}
 
+		template <typename Handler>
+		bool register_forward_invoker(std::string const& name, Handler&& handler)
+		{
+			if (invokers_.find(name) != invokers_.end())
+				return false;
+
+			invoker_t invoker = [h = std::forward<Handler>(handler)]
+				(connection_ptr conn, char const* data, size_t size)
+			{
+				h(data, size);
+				auto ctx = context_t::make_message(conn->head_, context_t::message_t{});
+				conn->response(ctx);
+			};
+
+			invokers_.emplace(name, std::move(invoker));
+			return true;
+		}
+
 		bool has_invoker(std::string const& name) const
 		{
 			return invokers_.find(name) != invokers_.end();

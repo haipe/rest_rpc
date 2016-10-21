@@ -43,8 +43,18 @@ namespace timax { namespace rpc
 		template <typename Protocol, typename ... Args>
 		auto call(tcp::endpoint endpoint, Protocol const& protocol, Args&& ... args)
 		{
+			static_assert(is_rpc_protocol<Protocol>::value, "Illegal protocol for rpc call!");
 			using result_type = typename Protocol::result_type;
 			using rpc_task_t = rpc_task_alias<result_type>;
+			auto ctx = client_private_.make_rpc_context(endpoint, protocol, std::forward<Args>(args)...);
+			return rpc_task_t{ client_private_, ctx };
+		}
+
+		template <typename Protocol, typename ... Args>
+		auto pub(tcp::endpoint endpoint, Protocol const& protocol, Args&& ... args)
+		{
+			static_assert(is_forward_protocol<Protocol>::value, "Illegal protocol for publication!");
+			using rpc_task_t = rpc_task_alias<void>;
 			auto ctx = client_private_.make_rpc_context(endpoint, protocol, std::forward<Args>(args)...);
 			return rpc_task_t{ client_private_, ctx };
 		}
@@ -52,12 +62,14 @@ namespace timax { namespace rpc
 		template <typename Protocol, typename Func>
 		void sub(tcp::endpoint const& endpoint, Protocol const& protocol, Func&& func)
 		{
+			static_assert(is_forward_protocol<Protocol>::value, "Illegal protocol for subscription!");
 			client_private_.sub(endpoint, protocol, std::forward<Func>(func));
 		}
 
 		template <typename Protocol, typename Func, typename EFunc>
 		void sub(tcp::endpoint const& endpoint, Protocol const& protocol, Func&& func, EFunc&& efunc)
 		{
+			static_assert(is_forward_protocol<Protocol>::value, "Illegal protocol for subscription!");
 			client_private_.sub(endpoint, protocol, std::forward<Func>(func), std::forward<EFunc>(efunc));
 		}
 

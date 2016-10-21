@@ -396,6 +396,19 @@ namespace timax { namespace rpc
 			return std::make_shared<sub_channel_t>(ios_, endpoint, protocol.name(), topic, std::move(proc_func), std::forward<EFunc>(efunc));
 		}
 
+		template <typename Handler, typename ForwardTuple, size_t ... Is>
+		static void apply_handler_impl(Handler&& handler, ForwardTuple&& tuple, std::index_sequence<Is...>)
+		{
+			handler(std::forward<std::tuple_element_t<Is, std::remove_reference_t<ForwardTuple>>>(std::get<Is>(tuple))...);
+		}
+
+		template <typename Handler, typename ForwardTuple>
+		static void apply_handler(Handler&& handler, ForwardTuple&& tuple)
+		{
+			using indices_type = std::make_index_sequence<std::tuple_size<std::remove_reference_t<ForwardTuple>>::value>;
+			apply_handler_impl(std::forward<Handler>(handler), std::forward<ForwardTuple>(tuple), indices_type{});
+		}
+
 		template <typename Protocol, typename Func>
 		static function_t make_proc_func(Protocol const& protocol, Func&& func)
 		{
@@ -403,7 +416,7 @@ namespace timax { namespace rpc
 			{
 				codec_policy cp{};
 				auto result = protocol.unpack(cp, data, size);
-				f(result);
+				apply_handler(f, result);
 			};
 		}
 

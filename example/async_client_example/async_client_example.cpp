@@ -4,7 +4,7 @@ namespace client
 {
 	TIMAX_DEFINE_PROTOCOL(add, int(int, int));
 	TIMAX_DEFINE_PROTOCOL(compose, void(int, const std::string&, timax::rpc::blob_t, double));
-	TIMAX_DEFINE_PROTOCOL(sub_add, int(int, int));
+	TIMAX_DEFINE_FORWARD(sub_add, int);
 	TIMAX_DEFINE_PROTOCOL(sub_not_exist, double(int, std::string const&));
 }
 

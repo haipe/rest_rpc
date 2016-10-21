@@ -50,5 +50,8 @@ int main()
 	bind4(4, "shared_ptr");
 	bind_test(1);
 
+	int a = 0;
+	decltype(auto) b = std::forward<int&>(a);
+
 	return 0;
 }

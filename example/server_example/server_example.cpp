@@ -53,7 +53,7 @@ int main()
 	client::foo foo{};
 
 	server.register_handler("add", client::add);
-	server.register_handler("sub_add", client::add, [&server](auto conn, int r) { server.pub("sub_add", r); });
+	server.register_handler("add_pub", client::add, [&server](auto conn, int r) { server.pub("sub_add", r); });
 	server.register_handler("foo_add", timax::bind(&client::foo::add, &foo));
 	server.register_handler("dummy", client::dummy);
 	server.register_handler("add_with_conn", []
@@ -69,6 +69,10 @@ int main()
 
 	test t;
 	server.register_handler("compose", timax::bind(&test::compose, &t));
+	server.register_forward_handler("sub_add", [&server](auto data, auto size)
+	{
+		server.pub("sub_add", data, size);
+	});
 
 	server.start();
 	std::getchar();

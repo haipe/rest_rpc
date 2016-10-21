@@ -31,7 +31,7 @@ namespace client
 		return cfg;
 	}
 
-	TIMAX_DEFINE_PROTOCOL(sub_add, int(int, int));
+	TIMAX_DEFINE_FORWARD(sub_add, int);
 }
 
 using async_client_t = timax::rpc::async_client<timax::rpc::msgpack_codec>;

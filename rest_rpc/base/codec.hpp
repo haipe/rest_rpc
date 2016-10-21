@@ -3,26 +3,24 @@
 #include <boost/archive/text_iarchive.hpp> 
 #include <sstream> 
 
-namespace boost {
-	namespace serialization {
+namespace boost { namespace serialization {
+	/**
+	* serialization for tuples
+	*/
+	template<typename Archive, size_t... I, typename... Args>
+	void serialize(Archive & ar, const std::index_sequence<I...>&, std::tuple<Args...> & t, unsigned int version)
+	{
+		bool arr[] = { (ar & std::get<I>(t), false)... };
+		(void*)arr;
+	}
 
-		/**
-		* serialization for tuples
-		*/
-		template<typename Archive, size_t... I, typename... Args>
-		void serialize(Archive & ar, const std::index_sequence<I...>&, std::tuple<Args...> & t, unsigned int version)
-		{
-			bool arr[] = { (ar & std::get<I>(t), false)... };
-			(void*)arr;
-		}
+	template<typename Archive, typename... Args>
+	void serialize(Archive & ar, std::tuple<Args...> & t, unsigned int version)
+	{
+		serialize(ar, std::make_index_sequence<sizeof... (Args)>{}, t, version);
+	}
 
-		template<typename Archive, typename... Args>
-		void serialize(Archive & ar, std::tuple<Args...> & t, unsigned int version)
-		{
-			serialize(ar, std::make_index_sequence<sizeof... (Args)>{}, t, version);
-		}
-
-	} // end serialization namespace
+} // end serialization namespace 
 } // end boost namespace
 
 namespace timax { namespace rpc
@@ -106,7 +104,7 @@ namespace timax { namespace rpc
 			buffer_t buffer;
 			auto args_tuple = std::make_tuple(std::forward<Args>(args)...);
 			msgpack::pack(buffer, args_tuple);
-			return std::move(buffer.release());
+			return buffer.release();
 		}
 
 		template <typename T>
@@ -114,7 +112,7 @@ namespace timax { namespace rpc
 		{
 			buffer_t buffer;
 			msgpack::pack(buffer, std::forward<T>(t));
-			return std::move(buffer.release());
+			return buffer.release();
 		}
 
 		template <typename T>
@@ -219,4 +217,32 @@ namespace timax { namespace rpc
 			return vec;
 		}
 	};
+} }
+
+namespace timax { namespace rpc 
+{
+	template <typename T>
+	struct is_std_tuple : std::false_type {};
+
+	template <typename ... Args>
+	struct is_std_tuple<std::tuple<Args...>> : std::true_type {};
+
+	template <typename CodecPolicy, typename Arg>
+	auto pack_as_tuple_if_not_impl(std::true_type, CodecPolicy const& cp, Arg&& arg)
+	{
+		return cp.pack(std::forward<Arg>(arg));
+	}
+
+	template <typename CodecPolicy, typename Arg>
+	auto pack_as_tuple_if_not_impl(std::false_type, CodecPolicy const& cp, Arg&& arg)
+	{
+		return cp.pack_args(std::forward<Arg>(arg));
+	}
+
+	template <typename CodecPolicy, typename Arg>
+	auto pack_as_tuple_if_not(CodecPolicy const& cp, Arg&& arg)
+	{
+		return pack_as_tuple_if_not_impl(is_std_tuple<std::remove_reference_t<std::remove_cv_t<Arg>>>{},
+			cp, std::forward<Arg>(arg));
+	}
 } }
