@@ -163,7 +163,7 @@ namespace timax { namespace rpc
 				*r = codec.template unpack<result_type>(data, size);
 				func(*r);
 			};
-
+	
 			return std::move(*this);
 		}
 
