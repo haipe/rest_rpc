@@ -252,7 +252,9 @@ namespace timax { namespace rpc
 					auto ctx = context_t::make_message(head, std::move(message));
 					conn->response(ctx);
 				});
-			}
+			};
+
+			return invoker;
 		}
 
 		template <typename CodecPolicy, typename Handler, typename PostFunc>
@@ -275,7 +277,9 @@ namespace timax { namespace rpc
 					});
 					conn->response(ctx);
 				});
-			}
+			};
+
+			return invoker;
 		}
 	};
 } }
