@@ -53,14 +53,26 @@ int main()
 	client::foo foo{};
 
 	server.register_handler("add", client::add);
-	server.register_handler("sub_add", client::add, [&server](auto conn, int r) { server.pub("sub_add", r); });
+	server.register_handler("add_pub", client::add, [&server](auto conn, int r) { server.pub("sub_add", r); });
 	server.register_handler("foo_add", timax::bind(&client::foo::add, &foo));
 	server.register_handler("dummy", client::dummy);
+	server.register_handler("add_with_conn", []
+		(std::shared_ptr<timax::rpc::connection> conn, int a, int b)
+	{
+		auto result = a + b;
+		if (result < 1)
+			conn->close();
+		return result;
+	});
 	
 	server.async_register_handler("time_consuming", client::some_task_takes_a_lot_of_time, [](auto conn) { std::cout << "acomplished!" << std::endl; });
 
 	test t;
 	server.register_handler("compose", timax::bind(&test::compose, &t));
+	server.register_forward_handler("sub_add", [&server](auto data, auto size)
+	{
+		server.pub("sub_add", data, size);
+	});
 
 	server.start();
 	std::getchar();

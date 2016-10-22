@@ -6,6 +6,7 @@ namespace timax { namespace rpc
 	struct rpc_context
 	{
 		using codec_policy = CodecPolicy;
+		using buffer_t = typename codec_policy::buffer_type;
 		using success_function_t = std::function<void(char const*, size_t)>;
 		using on_error_function_t = std::function<void(exception const&)>;
 
@@ -13,7 +14,7 @@ namespace timax { namespace rpc
 			io_service_t& ios,
 			tcp::endpoint const& endpoint,
 			std::string const& name,
-			std::vector<char>&& request)
+			buffer_t&& request)
 			: timer(ios)
 			, timeout(duration_t::max())
 			, endpoint(endpoint)
@@ -123,7 +124,7 @@ namespace timax { namespace rpc
 		tcp::endpoint							endpoint;
 		std::string							name;
 		head_t								head;
-		std::vector<char>						req;				// request buffer
+		buffer_t								req;				// request buffer
 		std::vector<char>						rep;				// response buffer
 		exception							err;
 		success_function_t					on_ok;

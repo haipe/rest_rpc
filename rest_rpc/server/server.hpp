@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 namespace timax { namespace rpc 
 {
@@ -16,12 +16,12 @@ namespace timax { namespace rpc
 	public:
 		server(uint16_t port, size_t pool_size, duration_t time_out = duration_t::max())
 			: ios_pool_(pool_size)
-			, acceptor_(ios_pool_.get_ios_wrapper().get_ios(), tcp::endpoint{tcp::v4(), port})
+			, acceptor_(ios_pool_.get_io_service(), tcp::endpoint{tcp::v4(), port})
 			, time_out_(time_out)
 		{
 			init_callback_functions();
 
-			register_handler(SUB_TOPIC, [this](std::string const& topic) { return sub(topic); }, [this](auto conn, auto const& topic)
+			register_handler(SUB_TOPIC, [this](std::string const& topic) { return topic; }, [this](auto conn, auto const& topic)
 			{
 				if (!topic.empty())
 				{
@@ -71,34 +71,27 @@ namespace timax { namespace rpc
 			return router_.async_register_invoker(name, std::forward<Handler>(handler));
 		}
 
+		template <typename Handler>
+		bool register_forward_handler(std::string const& name, Handler&& handler)
+		{
+			return router_.register_forward_invoker(name, std::forward<Handler>(handler));
+		}
+
 		template <typename Result>
 		void pub(std::string const& topic, Result const& result, std::function<void()>&& postf = nullptr)
 		{
 			head_t h = { 0 };
-			auto buffer = codec_policy{}.pack(result);
+			auto buffer = pack_as_tuple_if_not(codec_policy{}, result);
 			auto ctx = context_t::make_message(h, std::move(buffer), std::move(postf));
+			public_to_subscriber(topic, ctx);
+		}
 
-			lock_t lock{ mutex_ };
-			auto range = subscribers_.equal_range(topic);
-			if (range.first == range.second)
-				return;
-
-			std::list<connection_ptr> alives;
-			std::for_each(range.first, range.second, [&alives](auto& elem)
-			{
-				auto conn = elem.second.lock();
-				if (conn)
-				{
-					alives.push_back(conn);
-				}
-			});
-
-			lock.unlock();
-
-			for (auto& alive_conn : alives)
-			{
-				alive_conn->response(ctx);
-			}
+		void pub(std::string const& topic, char const* data, size_t size, std::function<void()>&& posf = nullptr)
+		{
+			head_t h = { 0 };
+			context_t::message_t buffer{ data, data + size };
+			auto ctx = context_t::make_message(h, std::move(buffer), std::move(posf));
+			public_to_subscriber(topic, ctx);
 		}
 
 		void remove_sub_conn(connection_ptr conn)
@@ -145,23 +138,10 @@ namespace timax { namespace rpc
 			});
 		}
 
-		std::string sub(std::string const& topic)
-		{
-			if (!router_.has_invoker(topic))
-			{
-				using namespace std::string_literals;
-				std::string error_message = "Topic:"s + topic + " not exists!";
-				exception e{ error_code::FAIL, std::move(error_message) };
-				throw e;
-			}
-
-			return topic;
-		}
-
 		void do_accept()
 		{
 			auto new_connection = std::make_shared<connection>(
-				ios_pool_.get_ios_wrapper(), time_out_);
+				ios_pool_.get_io_service(), time_out_);
 
 			acceptor_.async_accept(new_connection->socket(), 
 				[this, new_connection](boost::system::error_code const& error)
@@ -177,6 +157,31 @@ namespace timax { namespace rpc
 
 				do_accept();
 			});
+		}
+
+		void public_to_subscriber(std::string const& topic, std::shared_ptr<context_t>& ctx)
+		{
+			lock_t lock{ mutex_ };
+			auto range = subscribers_.equal_range(topic);
+			if (range.first == range.second)
+				return;
+
+			std::list<connection_ptr> alives;
+			std::for_each(range.first, range.second, [&alives](auto& elem)
+			{
+				auto conn = elem.second.lock();
+				if (conn)
+				{
+					alives.push_back(conn);
+				}
+			});
+
+			lock.unlock();
+
+			for (auto& alive_conn : alives)
+			{
+				alive_conn->response(ctx);
+			}
 		}
 
 	private:

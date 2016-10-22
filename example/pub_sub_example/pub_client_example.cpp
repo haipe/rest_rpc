@@ -31,7 +31,8 @@ namespace client
 		return cfg;
 	}
 
-	TIMAX_DEFINE_PROTOCOL(sub_add, int(int, int));
+	TIMAX_DEFINE_PROTOCOL(add_pub, int(int, int));
+	TIMAX_DEFINE_FORWARD(sub_add, int);
 }
 
 using async_client_t = timax::rpc::async_client<timax::rpc::msgpack_codec>;
@@ -54,8 +55,10 @@ int main(void)
 		while (true)
 		{
 			using namespace std::chrono_literals;
-			async_client->call(endpoint, client::sub_add, lhs, rhs++);
-			std::this_thread::sleep_for(1s);
+			async_client->call(endpoint, client::add_pub, lhs, rhs++);
+			std::this_thread::sleep_for(0.5s);
+			async_client->pub(endpoint, client::sub_add, rhs);
+			std::this_thread::sleep_for(0.5s);
 		}
 	}
 	catch (timax::rpc::exception const& e)

@@ -3,7 +3,7 @@
 namespace timax { namespace rpc 
 {
 	template <typename CodecPolicy>
-	rpc_session<CodecPolicy>::rpc_session(rpc_manager_t& mgr, io_service_t& ios, tcp::endpoint const& endpoint)
+	rpc_channel<CodecPolicy>::rpc_channel(rpc_manager_t& mgr, io_service_t& ios, tcp::endpoint const& endpoint)
 		: rpc_mgr_(mgr)
 		, hb_timer_(ios)
 		, connection_(ios, endpoint)
@@ -13,13 +13,13 @@ namespace timax { namespace rpc
 	}
 
 	template <typename CodecPolicy>
-	rpc_session<CodecPolicy>::~rpc_session()
+	rpc_channel<CodecPolicy>::~rpc_channel()
 	{
 		stop_rpc_service(error_code::CANCEL);
 	}
 
 	template <typename CodecPolicy>
-	void rpc_session<CodecPolicy>::start()
+	void rpc_channel<CodecPolicy>::start()
 	{
 		auto self = this->shared_from_this();
 		connection_.start(
@@ -34,7 +34,7 @@ namespace timax { namespace rpc
 	}
 
 	template <typename CodecPolicy>
-	void rpc_session<CodecPolicy>::call(context_ptr& ctx)
+	void rpc_channel<CodecPolicy>::call(context_ptr& ctx)
 	{
 		auto status = status_.load();
 		if (status_t::stopped == status)
@@ -73,7 +73,7 @@ namespace timax { namespace rpc
 	}
 
 	template <typename CodecPolicy>
-	void rpc_session<CodecPolicy>::start_rpc_service()
+	void rpc_channel<CodecPolicy>::start_rpc_service()
 	{
 		status_ = status_t::running;
 		call_impl();
@@ -82,14 +82,14 @@ namespace timax { namespace rpc
 	}
 
 	template <typename CodecPolicy>
-	void rpc_session<CodecPolicy>::stop_rpc_service(error_code error)
+	void rpc_channel<CodecPolicy>::stop_rpc_service(error_code error)
 	{
 		status_ = status_t::stopped;
 		stop_rpc_calls(error);
 	}
 
 	template <typename CodecPolicy>
-	void rpc_session<CodecPolicy>::call_impl()
+	void rpc_channel<CodecPolicy>::call_impl()
 	{
 		lock_t lock{ mutex_ };
 		if (!calls_.call_list_empty())
@@ -101,23 +101,23 @@ namespace timax { namespace rpc
 	}
 	
 	template <typename CodecPolicy>
-	void rpc_session<CodecPolicy>::call_impl1()
+	void rpc_channel<CodecPolicy>::call_impl1()
 	{
 		auto& to_call = to_calls_.front();
 
 		async_write(connection_.socket(), to_call->get_send_message(),
-			boost::bind(&rpc_session::handle_send, this->shared_from_this(), asio_error));
+			boost::bind(&rpc_channel::handle_send, this->shared_from_this(), asio_error));
 	}
 
 	template <typename CodecPolicy>
-	void rpc_session<CodecPolicy>::recv_head()
+	void rpc_channel<CodecPolicy>::recv_head()
 	{
 		async_read(connection_.socket(), boost::asio::buffer(&head_, sizeof(head_t)),
-			boost::bind(&rpc_session::handle_recv_head, this->shared_from_this(), asio_error));
+			boost::bind(&rpc_channel::handle_recv_head, this->shared_from_this(), asio_error));
 	}
 
 	template <typename CodecPolicy>
-	void rpc_session<CodecPolicy>::recv_body()
+	void rpc_channel<CodecPolicy>::recv_body()
 	{
 		auto call_id = head_.id;
 		lock_t locker{ mutex_ };
@@ -139,18 +139,18 @@ namespace timax { namespace rpc
 			{
 				to_discard_message_.resize(head_.len);
 				async_read(connection_.socket(), boost::asio::buffer(to_discard_message_),
-					boost::bind(&rpc_session::handle_recv_body_discard, this->shared_from_this(), asio_error));
+					boost::bind(&rpc_channel::handle_recv_body_discard, this->shared_from_this(), asio_error));
 			}
 			else
 			{
-				async_read(connection_.socket(), call_ctx->get_recv_message(head_.len), boost::bind(&rpc_session::handle_recv_body,
+				async_read(connection_.socket(), call_ctx->get_recv_message(head_.len), boost::bind(&rpc_channel::handle_recv_body,
 					this->shared_from_this(), call_ctx, asio_error));
 			}
 		}
 	}
 
 	template <typename CodecPolicy>
-	void rpc_session<CodecPolicy>::call_complete(context_ptr& ctx)
+	void rpc_channel<CodecPolicy>::call_complete(context_ptr& ctx)
 	{
 		if (nullptr != ctx)
 		{
@@ -169,16 +169,16 @@ namespace timax { namespace rpc
 	}
 
 	template <typename CodecPolicy>
-	void rpc_session<CodecPolicy>::setup_heartbeat_timer()
+	void rpc_channel<CodecPolicy>::setup_heartbeat_timer()
 	{
 		using namespace std::chrono_literals;
 
 		hb_timer_.expires_from_now(15s);
-		hb_timer_.async_wait(boost::bind(&rpc_session::handle_heartbeat, this->shared_from_this(), asio_error));
+		hb_timer_.async_wait(boost::bind(&rpc_channel::handle_heartbeat, this->shared_from_this(), asio_error));
 	}
 
 	template <typename CodecPolicy>
-	void rpc_session<CodecPolicy>::stop_rpc_calls(error_code error)
+	void rpc_channel<CodecPolicy>::stop_rpc_calls(error_code error)
 	{
 		call_map_t to_responses;
 		{
@@ -195,18 +195,18 @@ namespace timax { namespace rpc
 	}
 
 	template <typename CodecPolicy>
-	void rpc_session<CodecPolicy>::set_timeout(context_ptr& ctx)
+	void rpc_channel<CodecPolicy>::set_timeout(context_ptr& ctx)
 	{
 		if (duration_t::max() != ctx->timeout)
 		{
 			ctx->timer.expires_from_now(ctx->timeout);
-			ctx->timer.async_wait(boost::bind(&rpc_session::handle_timeout,
+			ctx->timer.async_wait(boost::bind(&rpc_channel::handle_timeout,
 				this->shared_from_this(), ctx, asio_error));
 		}
 	}
 
 	template <typename CodecPolicy>
-	void rpc_session<CodecPolicy>::handle_send(boost::system::error_code const& error)
+	void rpc_channel<CodecPolicy>::handle_send(boost::system::error_code const& error)
 	{
 		if (!connection_.socket().is_open())
 			return;
@@ -228,7 +228,7 @@ namespace timax { namespace rpc
 	}
 
 	template <typename CodecPolicy>
-	void rpc_session<CodecPolicy>::handle_recv_head(boost::system::error_code const& error)
+	void rpc_channel<CodecPolicy>::handle_recv_head(boost::system::error_code const& error)
 	{
 		if (!connection_.socket().is_open())
 			return;
@@ -245,7 +245,7 @@ namespace timax { namespace rpc
 	}
 
 	template <typename CodecPolicy>
-	void rpc_session<CodecPolicy>::handle_recv_body(context_ptr ctx, boost::system::error_code const& error)
+	void rpc_channel<CodecPolicy>::handle_recv_body(context_ptr ctx, boost::system::error_code const& error)
 	{
 		if (!connection_.socket().is_open())
 			return;
@@ -261,7 +261,7 @@ namespace timax { namespace rpc
 	}
 
 	template <typename CodecPolicy>
-	void rpc_session<CodecPolicy>::handle_recv_body_discard(boost::system::error_code const& error)
+	void rpc_channel<CodecPolicy>::handle_recv_body_discard(boost::system::error_code const& error)
 	{
 		if (!connection_.socket().is_open())
 			return;
@@ -273,7 +273,7 @@ namespace timax { namespace rpc
 	}
 
 	template <typename CodecPolicy>
-	void rpc_session<CodecPolicy>::handle_heartbeat(boost::system::error_code const& error)
+	void rpc_channel<CodecPolicy>::handle_heartbeat(boost::system::error_code const& error)
 	{
 		if (!connection_.socket().is_open())
 			return;
@@ -287,7 +287,7 @@ namespace timax { namespace rpc
 	}
 
 	template <typename CodecPolicy>
-	void rpc_session<CodecPolicy>::handle_timeout(context_ptr ctx, boost::system::error_code const& error)
+	void rpc_channel<CodecPolicy>::handle_timeout(context_ptr ctx, boost::system::error_code const& error)
 	{
 		if (!error && !ctx->is_over)
 		{
@@ -321,7 +321,7 @@ namespace timax { namespace rpc
 		auto itr = sessions_.find(endpoint);
 		if (itr == sessions_.end())
 		{
-			auto session = std::make_shared<rpc_session_t>(*this, ios_, endpoint);
+			auto session = std::make_shared<rpc_channel_t>(*this, ios_, endpoint);
 			session->start();
 			sessions_.emplace(endpoint, session);
 			return session;

@@ -1,11 +1,11 @@
-#include <rest_rpc/client.hpp>
+﻿#include <rest_rpc/client.hpp>
 
 namespace bench
 {
 	struct configure
 	{
-		std::string hostname;
-		std::string port;
+		std::string		hostname;
+		std::string		port;
 
 		META(hostname, port);
 	};
@@ -32,6 +32,7 @@ namespace bench
 	}
 
 	TIMAX_DEFINE_PROTOCOL(add, int(int, int));
+	TIMAX_DEFINE_PROTOCOL(bench_connection, void(void));
 
 	std::atomic<uint64_t> count{ 0 };
 
@@ -105,6 +106,41 @@ namespace bench
 
 		} }.detach();
 	}
+
+	void bench_conn(boost::asio::ip::tcp::endpoint const& endpoint, int connection_count)
+	{
+		using namespace std::chrono_literals;
+		using client_private_t = timax::rpc::async_client_private<timax::rpc::msgpack_codec>;
+
+		auto pool = std::make_shared<timax::rpc::io_service_pool>(std::thread::hardware_concurrency());
+		pool->start();
+
+		std::thread
+		{
+			[pool, &endpoint, connection_count]
+			{	
+				std::list<client_private_t> client;
+				auto const push_in_one_turn = 2048;
+				auto already_pushed = 0;
+				auto push_left = connection_count;
+				while (true)
+				{
+					while (already_pushed < push_in_one_turn && push_left > 0)
+					{
+						client.emplace_back(pool->get_io_service());
+						auto ctx = client.back().make_rpc_context(endpoint, bench_connection);
+						client.back().call(ctx);
+						++already_pushed;
+						--push_left;
+					}
+					already_pushed = 0;
+					std::this_thread::sleep_for(20ms);
+				}
+			} 
+
+		}.detach();
+
+	}
 }
 
 int main(int argc, char *argv[])
@@ -115,20 +151,22 @@ int main(int argc, char *argv[])
 	auto config = bench::get_config();
 	auto endpoint = timax::rpc::get_tcp_endpoint(
 		config.hostname, boost::lexical_cast<int16_t>(config.port));
+	int connection_count;
 
 	enum class client_style_t
 	{
 		UNKNOWN,
 		SYCN,
-		ASYCN
+		ASYCN,
+		CONN,
 	};
 
 	std::string client_style;
 	client_style_t style = client_style_t::UNKNOWN;
 
-	if (2 != argc)
+	if (2 > argc)
 	{
-		std::cout << "Usage: " << "$ ./bench_server %s(sync or async)" << std::endl;
+		std::cout << "Usage: " << "$ ./bench_client %s(sync, async or conn)" << std::endl;
 		return -1;
 	}
 	else
@@ -142,10 +180,13 @@ int main(int argc, char *argv[])
 		{
 			style = client_style_t::ASYCN;
 		}
-
+		else if ("conn" == client_style)
+		{
+			style = client_style_t::CONN;
+		}
 		if (client_style_t::UNKNOWN == style)
 		{
-			std::cout << "Usage: " << "$ ./bench_server %s(sync or async)" << std::endl;
+			std::cout << "Usage: " << "$ ./bench_client %s(sync, async or conn)" << std::endl;
 			return -1;
 		}
 	}
@@ -157,6 +198,15 @@ int main(int argc, char *argv[])
 		break;
 	case client_style_t::ASYCN:
 		bench::bench_async(endpoint);
+		break;
+	case client_style_t::CONN:
+		if (3 != argc)
+		{
+			std::cout << "Usage: " << "$ ./bench_client conn %d(connection count)" << std::endl;
+			return -1;
+		}
+		connection_count = boost::lexical_cast<int>(argv[2]);
+		bench::bench_conn(endpoint, connection_count);
 		break;
 	default:
 		return -1;

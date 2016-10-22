@@ -4,7 +4,7 @@ namespace client
 {
 	TIMAX_DEFINE_PROTOCOL(add, int(int, int));
 	TIMAX_DEFINE_PROTOCOL(compose, void(int, const std::string&, timax::rpc::blob_t, double));
-	TIMAX_DEFINE_PROTOCOL(sub_add, int(int, int));
+	TIMAX_DEFINE_FORWARD(sub_add, int);
 	TIMAX_DEFINE_PROTOCOL(sub_not_exist, double(int, std::string const&));
 }
 
@@ -41,6 +41,13 @@ void async_client_rpc_example(tcp::endpoint const& endpoint)
 	{
 		std::cout << e.get_error_message() << std::endl;
 	}
+
+	auto backup_endpoint = timax::rpc::get_tcp_endpoint("127.0.0.1", 8999);
+	asycn_client.call(endpoint, client::add, 1, 2).on_error([&backup_endpoint](auto const& error)
+	{
+		if (error.get_error_code() == timax::rpc::error_code::BADCONNECTION)
+			asycn_client.call(backup_endpoint, client::add, 1, 2);
+	});
 }
 
 void async_client_sub_example(tcp::endpoint const& endpoint)

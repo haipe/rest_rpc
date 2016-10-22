@@ -8,21 +8,21 @@ namespace kv
 	TIMAX_DEFINE_PROTOCOL(get, std::vector<char>(std::string const&));
 	TIMAX_DEFINE_PROTOCOL(put, bool(std::string const&, std::vector<char> const&));
 
-	enum class operation
+	enum class operation_t
 	{
 		put,
 		get,
 		unknown,
 	};
 
-	operation get_operation(char const* operation)
+	operation_t get_operation(char const* operation)
 	{
 		if ("put"s == operation)
-			return operation::put;
+			return operation_t::put;
 		else if("get"s == operation)
-			return operation::get;
+			return operation_t::get;
 		else
-			return operation::unknown;
+			return operation_t::unknown;
 	}
 
 	using client_t = timax::rpc::sync_client<timax::rpc::msgpack_codec>;
@@ -151,14 +151,14 @@ int main(int argc, char* argv[])
 		return -1;
 
 	auto operation = kv::get_operation(argv[1]);
-	if (kv::operation::unknown == operation)
+	if (kv::operation_t::unknown == operation)
 		return -1;
 
 	switch (operation)
 	{
-	case kv::operation::put:
+	case kv::operation_t::put:
 		return kv::put_operation(argc, argv);
-	case kv::operation::get:
+	case kv::operation_t::get:
 		return kv::get_operation(argc, argv);
 	default:
 		std::cout << "Unknown operation!" << std::endl;

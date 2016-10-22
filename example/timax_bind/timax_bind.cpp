@@ -23,6 +23,14 @@ namespace client
 
 int main()
 {
+	using namespace std::string_literals;
+	auto string = "127.0.0.1:9000, 127.0.0.1:4000"s;
+	auto endpoints = timax::rpc::get_tcp_endpoints(string);
+	for (auto const& endpoint : endpoints)
+	{
+		std::cout << endpoint << std::endl;
+	}
+
 	//using namespace std::placeholders;
 	client::foo foo;
 	auto bind1_with_boost_placeholders = timax::bind(&client::foo::wtf, foo, 1, _1);
@@ -41,6 +49,9 @@ int main()
 	bind3(3, "WTF");
 	bind4(4, "shared_ptr");
 	bind_test(1);
+
+	int a = 0;
+	decltype(auto) b = std::forward<int&>(a);
 
 	return 0;
 }

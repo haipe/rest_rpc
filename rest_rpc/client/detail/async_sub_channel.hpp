@@ -4,7 +4,7 @@
 
 namespace timax { namespace rpc 
 {
-	class sub_session : public std::enable_shared_from_this<sub_session>
+	class sub_channel : public std::enable_shared_from_this<sub_channel>
 	{
 	public:
 		using function_t = std::function<void(char const*, size_t)>;
@@ -12,7 +12,7 @@ namespace timax { namespace rpc
 
 	public:
 		template <typename Message>
-		sub_session(
+		sub_channel(
 			io_service_t& ios, 
 			tcp::endpoint const& endpoint,
 			std::string const& topic_string,
@@ -60,9 +60,9 @@ namespace timax { namespace rpc
 		}
 
 		static auto get_on_error() 
-			-> std::function<void(std::shared_ptr<sub_session>&)>&
+			-> std::function<void(std::shared_ptr<sub_channel>&)>&
 		{
-			static std::function<void(std::shared_ptr<sub_session>&)> on_error;
+			static std::function<void(std::shared_ptr<sub_channel>&)> on_error;
 			return on_error;
 		}
 
@@ -92,7 +92,7 @@ namespace timax { namespace rpc
 			if (running_flag_.load())
 			{
 				auto requet_message = request_sub_message();
-				async_write(connection_.socket(), requet_message, boost::bind(&sub_session::handle_request_sub, 
+				async_write(connection_.socket(), requet_message, boost::bind(&sub_channel::handle_request_sub, 
 					this->shared_from_this(), asio_error));
 			}
 		}
@@ -107,16 +107,16 @@ namespace timax { namespace rpc
 		{
 			using namespace std::chrono_literals;
 			hb_timer_.expires_from_now(15s);
-			hb_timer_.async_wait(boost::bind(&sub_session::handle_heartbeat, this->shared_from_this(), asio_error));
+			hb_timer_.async_wait(boost::bind(&sub_channel::handle_heartbeat, this->shared_from_this(), asio_error));
 		}
 
 		void recv_sub_head()
 		{
 			async_read(connection_.socket(), boost::asio::buffer(&recv_head_, sizeof(head_t)), boost::bind(
-				&sub_session::handle_sub_head, this->shared_from_this(), asio_error));
+				&sub_channel::handle_sub_head, this->shared_from_this(), asio_error));
 		}
 
-		void on_error(exception const& exception)
+		void on_error(exception const& exception) 
 		{
 			if (error_)
 			{
@@ -150,7 +150,7 @@ namespace timax { namespace rpc
 			if (!error)
 			{
 				async_read(connection_.socket(), boost::asio::buffer(&recv_head_, sizeof(head_t)), boost::bind(
-					&sub_session::handle_response_sub_head, this->shared_from_this(), asio_error));
+					&sub_channel::handle_response_sub_head, this->shared_from_this(), asio_error));
 			}
 			else
 			{
@@ -169,7 +169,7 @@ namespace timax { namespace rpc
 				{
 					response_.resize(recv_head_.len);
 					async_read(connection_.socket(), boost::asio::buffer(response_), boost::bind(
-						&sub_session::handle_response_sub_body, this->shared_from_this(), asio_error));
+						&sub_channel::handle_response_sub_body, this->shared_from_this(), asio_error));
 				}
 			}
 			else
@@ -212,7 +212,7 @@ namespace timax { namespace rpc
 					// in this case, we got sub message
 					response_.resize(recv_head_.len);
 					async_read(connection_.socket(), boost::asio::buffer(response_), boost::bind(
-						&sub_session::handle_sub_body, this->shared_from_this(), asio_error));
+						&sub_channel::handle_sub_body, this->shared_from_this(), asio_error));
 				}
 				else
 				{
@@ -263,7 +263,7 @@ namespace timax { namespace rpc
 			{
 				send_head_ = { 0 };
 				async_write(connection_.socket(), boost::asio::buffer(&send_head_, sizeof(head_t)),
-					boost::bind(&sub_session::handle_send_hb, this->shared_from_this(), asio_error));
+					boost::bind(&sub_channel::handle_send_hb, this->shared_from_this(), asio_error));
 
 				setup_heartbeat_timer();
 			}
@@ -299,20 +299,20 @@ namespace timax { namespace rpc
 	{
 	public:
 		using codec_policy = CodecPolicy;
-		using sub_session_t = sub_session;
-		using sub_session_ptr = std::shared_ptr<sub_session_t>;
-		using topics_map_t = std::map<std::string, sub_session_ptr>;
+		using sub_channel_t = sub_channel;
+		using sub_channel_ptr = std::shared_ptr<sub_channel_t>;
+		using topics_map_t = std::map<std::string, sub_channel_ptr>;
 		using endpoint_map_t = std::map<tcp::endpoint, topics_map_t>;
-		using function_t = sub_session_t::function_t;
+		using function_t = sub_channel_t::function_t;
 
 	public:
 		sub_manager(io_service_t& ios)
 			: ios_(ios)
 		{
-			auto& on_error = sub_session_t::get_on_error();
-			on_error = [this](sub_session_ptr& session) { remove(session); };
+			auto& on_error = sub_channel_t::get_on_error();
+			on_error = [this](sub_channel_ptr& channel) { remove(channel); };
 
-			auto& on_deserialize_exception = sub_session_t::get_deserialize_exception();
+			auto& on_deserialize_exception = sub_channel_t::get_deserialize_exception();
 			on_deserialize_exception = [](char const* data, size_t size) 
 			{ 
 				codec_policy cp{};
@@ -323,25 +323,25 @@ namespace timax { namespace rpc
 		template <typename Protocol, typename Func>
 		void sub(tcp::endpoint const& endpoint, Protocol const& protocol, Func&& func)
 		{
-			auto session = make_sub_session(endpoint, protocol, std::forward<Func>(func));
-			sub_impl(endpoint, protocol.name(), session);
+			auto channel = make_sub_channel(endpoint, protocol, std::forward<Func>(func));
+			sub_impl(endpoint, protocol.name(), channel);
 		}
 
 		template <typename Protocol, typename Func, typename EFunc>
 		void sub(tcp::endpoint const& endpoint, Protocol const& protocol, Func&& func, EFunc&& error)
 		{
-			auto session = make_sub_session(endpoint, protocol, std::forward<Func>(func), std::forward<EFunc>(error));
-			sub_impl(endpoint, protocol.name(), session);
+			auto channel = make_sub_channel(endpoint, protocol, std::forward<Func>(func), std::forward<EFunc>(error));
+			sub_impl(endpoint, protocol.name(), channel);
 		}
 
-		void remove(sub_session_ptr& session)
+		void remove(sub_channel_ptr& channel)
 		{
 			lock_t lock{ mutex_ };
-			auto endpoint_itr = topics_.find(session->get_endpoint());
+			auto endpoint_itr = topics_.find(channel->get_endpoint());
 			if (topics_.end() != endpoint_itr)
 			{
 				auto& topics_in_endpoint = endpoint_itr->second;
-				auto topic_itr = topics_in_endpoint.find(session->get_topic());
+				auto topic_itr = topics_in_endpoint.find(channel->get_topic());
 				if (topics_in_endpoint.end() != topic_itr)
 				{
 					topics_in_endpoint.erase(topic_itr);
@@ -352,17 +352,16 @@ namespace timax { namespace rpc
 			}
 		}
 
-	private:
-		void sub_impl(tcp::endpoint const& endpoint, std::string const& topic, sub_session_ptr& session)
+		void sub_impl(tcp::endpoint const& endpoint, std::string const& topic, sub_channel_ptr& channel)
 		{
 			lock_t lock{ mutex_ };
 			auto endpoint_itr = topics_.find(endpoint);
 			if (topics_.end() == endpoint_itr)
 			{
 				topics_map_t topic_map;
-				topic_map.emplace(topic, session);
+				topic_map.emplace(topic, channel);
 				topics_.emplace(endpoint, std::move(topic_map));
-				session->start();
+				channel->start();
 			}
 			else
 			{
@@ -373,28 +372,41 @@ namespace timax { namespace rpc
 				}
 				else
 				{
-					endpoint_itr->second.emplace(topic, session);
-					session->start();
+					endpoint_itr->second.emplace(topic, channel);
+					channel->start();
 				}
 			}
 		}
 
 		template <typename Protocol, typename Func>
-		sub_session_ptr make_sub_session(tcp::endpoint const& endpoint, Protocol const& protocol, Func&& func)
+		sub_channel_ptr make_sub_channel(tcp::endpoint const& endpoint, Protocol const& protocol, Func&& func)
 		{
 			codec_policy cp{};
 			auto topic = protocol.pack_topic(cp);
 			auto proc_func = make_proc_func(protocol, std::forward<Func>(func));
-			return std::make_shared<sub_session_t>(ios_, endpoint, protocol.name(), topic, std::move(proc_func));
+			return std::make_shared<sub_channel_t>(ios_, endpoint, protocol.name(), topic, std::move(proc_func));
 		}
 
 		template <typename Protocol, typename Func, typename EFunc>
-		sub_session_ptr make_sub_session(tcp::endpoint const& endpoint, Protocol const& protocol, Func&& func, EFunc&& efunc)
+		sub_channel_ptr make_sub_channel(tcp::endpoint const& endpoint, Protocol const& protocol, Func&& func, EFunc&& efunc)
 		{
 			codec_policy cp{};
 			auto topic = protocol.pack_topic(cp);
 			auto proc_func = make_proc_func(protocol, std::forward<Func>(func));
-			return std::make_shared<sub_session_t>(ios_, endpoint, protocol.name(), topic, std::move(proc_func), std::forward<EFunc>(efunc));
+			return std::make_shared<sub_channel_t>(ios_, endpoint, protocol.name(), topic, std::move(proc_func), std::forward<EFunc>(efunc));
+		}
+
+		template <typename Handler, typename ForwardTuple, size_t ... Is>
+		static void apply_handler_impl(Handler&& handler, ForwardTuple&& tuple, std::index_sequence<Is...>)
+		{
+			handler(std::forward<std::tuple_element_t<Is, std::remove_reference_t<ForwardTuple>>>(std::get<Is>(tuple))...);
+		}
+
+		template <typename Handler, typename ForwardTuple>
+		static void apply_handler(Handler&& handler, ForwardTuple&& tuple)
+		{
+			using indices_type = std::make_index_sequence<std::tuple_size<std::remove_reference_t<ForwardTuple>>::value>;
+			apply_handler_impl(std::forward<Handler>(handler), std::forward<ForwardTuple>(tuple), indices_type{});
 		}
 
 		template <typename Protocol, typename Func>
@@ -404,7 +416,7 @@ namespace timax { namespace rpc
 			{
 				codec_policy cp{};
 				auto result = protocol.unpack(cp, data, size);
-				f(result);
+				apply_handler(f, result);
 			};
 		}
 

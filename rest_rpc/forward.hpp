@@ -9,6 +9,7 @@
 #include <boost/thread/thread.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/asio/steady_timer.hpp>
+#include <boost/algorithm/string.hpp>
 
 // standard libraries
 #include <cstdint>
@@ -60,3 +61,4 @@ namespace timax { namespace rpc
 #include <rest_rpc/base/utils.hpp>
 #include <rest_rpc/base/excetion.hpp>
 #include <rest_rpc/base/codec.hpp>
+#include <rest_rpc/base/io_service_pool.hpp>
