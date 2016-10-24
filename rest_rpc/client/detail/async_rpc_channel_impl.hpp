@@ -266,7 +266,11 @@ namespace timax { namespace rpc
 		if (!connection_.socket().is_open())
 			return;
 
-		if (error)
+		if (!error)
+		{
+			recv_head();
+		}
+		else
 		{
 			stop_rpc_service(error_code::BADCONNECTION);
 		}
@@ -291,7 +295,7 @@ namespace timax { namespace rpc
 	{
 		if (!error && !ctx->is_over)
 		{
-			ctx->error(error_code::TIMEOUT);
+			ctx->error(error_code::TIMEOUT, std::move(error.message()));
 			lock_t lock{ mutex_ };
 			calls_.remove_call_from_map(ctx->head.id);
 		}
