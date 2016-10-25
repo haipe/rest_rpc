@@ -140,7 +140,7 @@ namespace timax { namespace rpc
 		template<typename T>
 		T unpack(char const* data, size_t length)
 		{
-			DeSerializer dr;
+			kapok::DeSerializer dr;
 			dr.Parse(data, length);
 
 			T t;
@@ -154,7 +154,7 @@ namespace timax { namespace rpc
 		buffer_type pack_args(Args&& ... args) const
 		{
 			auto args_tuple = std::make_tuple(std::forward<Args>(args)...);
-			Serializer sr;
+			kapok::Serializer sr;
 			sr.Serialize(args_tuple);
 			return sr.GetString();
 		}
@@ -162,7 +162,7 @@ namespace timax { namespace rpc
 		template <typename T>
 		buffer_type pack(T&& t) const
 		{
-			Serializer sr;
+			kapok::Serializer sr;
 			sr.Serialize(std::forward<T>(t));
 			return sr.GetString();
 		}
