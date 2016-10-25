@@ -107,19 +107,40 @@ namespace timax
 	template <typename ... Args>
 	using voider_t = typename voider<Args...>::type;
 
-	template <typename T, typename = void>
-	struct is_smart_pointer : std::false_type
+	namespace discard_temporary
 	{
-	};
+		// vs2015 update3+ supported
+		template <typename T, typename = void>
+		struct is_smart_pointer : std::false_type
+		{
+		};
 
-	// this way of using SFINEA is type reference and cv qualifiers immuned
-	template <typename T>
-	struct is_smart_pointer<T,
-		voider_t<
+		// this way of using SFINEA is type reference and cv qualifiers immuned
+		template <typename T>
+		struct is_smart_pointer<T,
+			voider_t<
 			decltype(std::declval<T>().operator ->()),
 			decltype(std::declval<T>().get())
-		>> : std::true_type
+			>> : std::true_type
+		{
+		};
+	}
+	
+	template <typename T>
+	struct is_smart_pointer
 	{
+	private:
+		template <typename U>
+		static std::false_type test(...);
+
+		template <typename U,
+			typename = decltype(std::declval<U>().operator ->()),
+			typename = decltype(std::declval<U>().get())>
+		static std::true_type test(int);
+
+		using type = decltype(test<T>(0));
+	public:
+		static constexpr bool value = type::value;
 	};
 
 	template <typename Arg0, typename Tuple>
