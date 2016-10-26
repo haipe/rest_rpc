@@ -242,7 +242,7 @@ namespace timax { namespace rpc
 	template <typename CodecPolicy, typename Arg>
 	auto pack_as_tuple_if_not(CodecPolicy const& cp, Arg&& arg)
 	{
-		return pack_as_tuple_if_not_impl(is_std_tuple<std::remove_reference_t<std::remove_cv_t<Arg>>>{},
+		return pack_as_tuple_if_not_impl(is_std_tuple<std::remove_cv_t<std::remove_reference_t<Arg>>>{},
 			cp, std::forward<Arg>(arg));
 	}
 } }
