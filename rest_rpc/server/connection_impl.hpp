@@ -123,9 +123,9 @@ namespace timax { namespace rpc
 		}
 		else if(head_.len <= MAX_BUF_LEN)
 		{
-			std::vector<char> read_buffer(head_.len, 0);
-			async_read(socket_, boost::asio::buffer(read_buffer), std::bind(&connection::handle_read_body_pages, 
-				this->shared_from_this(), std::move(read_buffer), std::placeholders::_1));
+			large_buffer_.resize(head_.len, 0);
+			async_read(socket_, boost::asio::buffer(large_buffer_), boost::bind(&connection::handle_read_body_pages,
+				this->shared_from_this(), asio_error));
 		}
 		else
 		{
@@ -178,7 +178,7 @@ namespace timax { namespace rpc
 		}
 	}
 
-	void connection::handle_read_body_pages(std::vector<char>& read_buffer, boost::system::error_code const& error)
+	void connection::handle_read_body_pages(boost::system::error_code const& error)
 	{
 		cancel_timer();
 		if (!socket_.is_open())
@@ -189,7 +189,7 @@ namespace timax { namespace rpc
 			decltype(auto) on_read_pages = get_on_read_page();
 
 			if (on_read_pages)
-				on_read_pages(this->shared_from_this(), std::move(read_buffer));
+				on_read_pages(this->shared_from_this(), large_buffer_);
 
 			read_head();
 		}

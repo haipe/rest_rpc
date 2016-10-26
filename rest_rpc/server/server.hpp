@@ -129,7 +129,7 @@ namespace timax { namespace rpc
 				router_.apply_invoker(name, conn_ptr, data, size);
 			});
 
-			connection::set_on_read_pages([this](connection_ptr conn_ptr, std::vector<char> read_buffer)
+			connection::set_on_read_pages([this](connection_ptr conn_ptr, std::vector<char> const& read_buffer)
 			{
 				std::string name = read_buffer.data();
 				auto data = read_buffer.data() + name.length() + 1;
