@@ -51,12 +51,19 @@ namespace timax { namespace rpc
 		}
 
 		template <typename Protocol, typename ... Args>
-		auto pub(tcp::endpoint endpoint, Protocol const& protocol, Args&& ... args)
+		auto forward(tcp::endpoint endpoint, Protocol const& protocol, Args&& ... args)
 		{
 			static_assert(is_forward_protocol<Protocol>::value, "Illegal protocol for publication!");
 			using rpc_task_t = rpc_task_alias<void>;
 			auto ctx = client_private_.make_rpc_context(endpoint, protocol, std::forward<Args>(args)...);
 			return rpc_task_t{ client_private_, ctx };
+		}
+
+		template <typename Protocol, typename ... Args>
+		auto pub(tcp::endpoint endpoint, Protocol const& protocol, Args&& ... args)
+		{
+			static_assert(is_forward_protocol<Protocol>::value, "Illegal protocol for publication!");
+			using rpc_task_t = rpc_task_alias<void>;
 		}
 
 		template <typename Protocol, typename Func>

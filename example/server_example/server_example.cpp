@@ -69,10 +69,6 @@ int main()
 
 	test t;
 	server.register_handler("compose", timax::bind(&test::compose, &t));
-	server.register_forward_handler("sub_add", [&server](auto data, auto size)
-	{
-		server.pub("sub_add", data, size);
-	});
 
 	server.start();
 	std::getchar();

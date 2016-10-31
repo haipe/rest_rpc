@@ -112,7 +112,7 @@ namespace timax { namespace rpc
 	template <typename CodecPolicy>
 	void rpc_channel<CodecPolicy>::recv_head()
 	{
-		async_read(connection_.socket(), boost::asio::buffer(&head_, sizeof(head_t)),
+		async_read(connection_.socket(), boost::asio::buffer(&head_, sizeof(head_)),
 			boost::bind(&rpc_channel::handle_recv_head, this->shared_from_this(), asio_error));
 	}
 

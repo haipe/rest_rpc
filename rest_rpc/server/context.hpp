@@ -10,14 +10,27 @@ namespace timax { namespace rpc
 		context_t() = default;
 
 		template <typename Message>
-		context_t(head_t const& h, Message&& msg, post_func_t postf)
+		context_t(rep_header const& h, Message&& msg, post_func_t postf)
 			: context_t(h, std::move(message_t{ msg.begin(), msg.end() }), std::move(postf))
 		{
 		}
 
-		context_t(head_t const& h, message_t msg, post_func_t postf)
+		template <typename Message>
+		context_t(Message&& msg, post_func_t postf)
+			: context_t(std::move(message_t{ msg.begin(), msg.end() }), std::move(postf))
+		{
+		}
+
+		context_t(rep_header const& h, message_t msg, post_func_t postf)
 			: head(h)
 			, message(std::move(msg))
+			, post_func(std::move(postf))
+		{
+			head.len = static_cast<uint32_t>(message.size());
+		}
+
+		context_t(message_t msg, post_func_t postf)
+			: message(std::move(msg))
 			, post_func(std::move(postf))
 		{
 			head.len = static_cast<uint32_t>(message.size());
@@ -33,13 +46,13 @@ namespace timax { namespace rpc
 			-> std::vector<boost::asio::const_buffer>
 		{
 			if (message.empty())
-				return{ boost::asio::buffer(&head, sizeof(head_t)) };
+				return{ boost::asio::buffer(&head, sizeof(head)) };
 
-			return{ boost::asio::buffer(&head, sizeof(head_t)), boost::asio::buffer(message) };
+			return{ boost::asio::buffer(&head, sizeof(head)), boost::asio::buffer(message) };
 		}
 
 		template <typename Message>
-		static auto make_error_message(head_t const& h, Message&& msg, post_func_t postf = nullptr)
+		static auto make_error_message(req_header const& h, Message&& msg, post_func_t postf = nullptr)
 		{
 			auto ctx = make_message(h, std::forward<Message>(msg), std::move(postf));
 			ctx->head.code = static_cast<int16_t>(result_code::FAIL);
@@ -47,12 +60,18 @@ namespace timax { namespace rpc
 		}
 
 		template <typename Message>
-		static auto make_message(head_t const& h, Message&& msg, post_func_t postf = nullptr)
+		static auto make_message(req_header const& h, Message&& msg, post_func_t postf = nullptr)
 		{
 			return std::make_shared<context_t>(h, std::forward<Message>(msg), std::move(postf));
 		}
 
-		head_t			head;
+		template <typename Message>
+		static auto make_message(Message&& msg, post_func_t postf = nullptr)
+		{
+			return std::make_shared<context_t>(std::forward<Message>(msg), std::move(postf));
+		}
+
+		rep_header		head{ 0, 0, 0 };
 		message_t		message;
 		post_func_t		post_func;
 	};

@@ -5,6 +5,7 @@ namespace timax { namespace rpc
 	connection::connection(io_service_t& ios, duration_t time_out)
 		: ios_wrapper_(ios)
 		, socket_(ios)
+		, read_buffer_(PAGE_SIZE)
 		, timer_(ios)
 		, time_out_(time_out)
 	{
@@ -55,11 +56,6 @@ namespace timax { namespace rpc
 		get_on_read() = std::move(on_read);
 	}
 
-	void connection::set_on_read_pages(connection_on_read_pages_t on_read_pages)
-	{
-		get_on_read_page() = std::move(on_read_pages);
-	}
-
 	connection::connection_on_error_t& connection::get_on_error()
 	{
 		static connection_on_error_t on_error;
@@ -72,15 +68,14 @@ namespace timax { namespace rpc
 		return on_read;
 	}
 
-	connection::connection_on_read_pages_t& connection::get_on_read_page()
-	{
-		static connection_on_read_pages_t on_read_page;
-		return on_read_page;
-	}
-
 	blob_t connection::get_read_buffer() const
 	{
-		return{ usual_read_buffer_.data(), head_.len };
+		return{ read_buffer_.data(), head_.len };
+	}
+
+	req_header const& connection::get_read_header() const
+	{
+		return head_;
 	}
 
 	void connection::set_no_delay()
@@ -110,28 +105,25 @@ namespace timax { namespace rpc
 	void connection::read_head()
 	{
 		expires_timer();
-		async_read(socket_, boost::asio::buffer(&head_, sizeof(head_t)),
+		async_read(socket_, boost::asio::buffer(&head_, sizeof(head_)),
 			boost::bind(&connection::handle_read_head, this->shared_from_this(), asio_error));
 	}
 
 	void connection::read_body()
 	{
-		if (head_.len <= PAGE_SIZE)
-		{
-			async_read(socket_, boost::asio::buffer(usual_read_buffer_.data(), head_.len),
-				boost::bind(&connection::handle_read_body, this->shared_from_this(), asio_error));
-		}
-		else if(head_.len <= MAX_BUF_LEN)
-		{
-			large_buffer_.resize(head_.len, 0);
-			async_read(socket_, boost::asio::buffer(large_buffer_), boost::bind(&connection::handle_read_body_pages,
-				this->shared_from_this(), asio_error));
-		}
-		else
+		if (head_.len > MAX_BUF_LEN)
 		{
 			socket_.close();
-			//on_error();
+			return;
 		}
+
+		if (head_.len > PAGE_SIZE)
+		{
+			read_buffer_.resize(head_.len);
+		}
+
+		async_read(socket_, boost::asio::buffer(read_buffer_.data(), head_.len),
+			boost::bind(&connection::handle_read_body, this->shared_from_this(), asio_error));
 	}
 
 	void connection::handle_read_head(boost::system::error_code const& error)
@@ -168,28 +160,6 @@ namespace timax { namespace rpc
 			decltype(auto) on_read = get_on_read();
 			if (on_read)
 				on_read(this->shared_from_this());
-
-			read_head();
-		}
-		else
-		{
-			cancel_timer();
-			on_error(error);
-		}
-	}
-
-	void connection::handle_read_body_pages(boost::system::error_code const& error)
-	{
-		cancel_timer();
-		if (!socket_.is_open())
-			return;
-
-		if (!error)
-		{
-			decltype(auto) on_read_pages = get_on_read_page();
-
-			if (on_read_pages)
-				on_read_pages(this->shared_from_this(), large_buffer_);
 
 			read_head();
 		}

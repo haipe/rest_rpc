@@ -57,7 +57,7 @@ namespace timax { namespace rpc
 		rpc_call_container_t				calls_;
 		std::atomic<status_t>				status_;
 		bool								is_write_in_progress_;
-		head_t							head_;
+		rep_header						head_;
 		mutable std::mutex				mutex_;
 		call_list_t						to_calls_;
 		std::vector<char>					to_discard_message_;

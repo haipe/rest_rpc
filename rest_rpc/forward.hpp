@@ -28,6 +28,7 @@
 #include <array>
 #include <utility>
 #include <map>
+#include <unordered_map>
 #include <stdexcept>
 #include <type_traits>
 

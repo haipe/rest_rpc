@@ -26,7 +26,6 @@ namespace timax { namespace rpc
 			, function_(std::move(func))
 			, error_(std::move(error))
 		{
-			send_head_ = recv_head_ = { 0 };
 		}
 
 		void start()
@@ -77,12 +76,11 @@ namespace timax { namespace rpc
 		auto request_sub_message()
 			-> std::vector<boost::asio::const_buffer>
 		{
-			auto const& request_rpc = sub_topic.name();
-			send_head_.len = static_cast<uint32_t>(request_rpc.size() + topic_.size() + 1);
+			send_head_.len = static_cast<uint32_t>(topic_.size());
+			send_head_.hash = sub_topic.name();
 			return 
 			{
-				boost::asio::buffer(&send_head_, sizeof(head_t)),
-				boost::asio::buffer(request_rpc.c_str(), request_rpc.size() + 1),
+				boost::asio::buffer(&send_head_, sizeof(send_head_)),
 				boost::asio::buffer(topic_)
 			};
 		}
@@ -112,7 +110,7 @@ namespace timax { namespace rpc
 
 		void recv_sub_head()
 		{
-			async_read(connection_.socket(), boost::asio::buffer(&recv_head_, sizeof(head_t)), boost::bind(
+			async_read(connection_.socket(), boost::asio::buffer(&recv_head_, sizeof(recv_head_)), boost::bind(
 				&sub_channel::handle_sub_head, this->shared_from_this(), asio_error));
 		}
 
@@ -149,7 +147,7 @@ namespace timax { namespace rpc
 
 			if (!error)
 			{
-				async_read(connection_.socket(), boost::asio::buffer(&recv_head_, sizeof(head_t)), boost::bind(
+				async_read(connection_.socket(), boost::asio::buffer(&recv_head_, sizeof(recv_head_)), boost::bind(
 					&sub_channel::handle_response_sub_head, this->shared_from_this(), asio_error));
 			}
 			else
@@ -261,8 +259,7 @@ namespace timax { namespace rpc
 
 			if (!error)
 			{
-				send_head_ = { 0 };
-				async_write(connection_.socket(), boost::asio::buffer(&send_head_, sizeof(head_t)),
+				async_write(connection_.socket(), boost::asio::buffer(&send_head_, sizeof(send_head_)),
 					boost::bind(&sub_channel::handle_send_hb, this->shared_from_this(), asio_error));
 
 				setup_heartbeat_timer();
@@ -283,8 +280,8 @@ namespace timax { namespace rpc
 	private:
 		steady_timer_t						hb_timer_;
 		async_connection						connection_;
-		head_t								send_head_;
-		head_t								recv_head_;
+		req_header							send_head_;
+		rep_header							recv_head_;
 		std::string const						topic_string_;
 		std::vector<char> const				topic_;
 		std::vector<char>						response_;
@@ -331,7 +328,7 @@ namespace timax { namespace rpc
 		void sub(tcp::endpoint const& endpoint, Protocol const& protocol, Func&& func, EFunc&& error)
 		{
 			auto channel = make_sub_channel(endpoint, protocol, std::forward<Func>(func), std::forward<EFunc>(error));
-			sub_impl(endpoint, protocol.name(), channel);
+			//sub_impl(endpoint, protocol.name(), channel);
 		}
 
 		void remove(sub_channel_ptr& channel)
@@ -393,7 +390,7 @@ namespace timax { namespace rpc
 			codec_policy cp{};
 			auto topic = protocol.pack_topic(cp);
 			auto proc_func = make_proc_func(protocol, std::forward<Func>(func));
-			return std::make_shared<sub_channel_t>(ios_, endpoint, protocol.name(), topic, std::move(proc_func), std::forward<EFunc>(efunc));
+			return std::make_shared<sub_channel_t>(ios_, endpoint, protocol.topic(), topic, std::move(proc_func), std::forward<EFunc>(efunc));
 		}
 
 		template <typename Handler, typename ForwardTuple, size_t ... Is>

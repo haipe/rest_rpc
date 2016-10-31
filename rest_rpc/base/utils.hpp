@@ -59,4 +59,12 @@ namespace timax{ namespace rpc
 	{
 		return{ boost::asio::ip::address::from_string(address), port };
 	}
+
+	auto get_topic_and_data(char const* data, size_t size) -> std::tuple<std::string, char const*, size_t>
+	{
+		std::string topic = data;
+		data += topic.size() + 1;
+		size -= topic.size() + 1;
+		return std::make_tuple(std::move(topic), data, size);
+	}
 } }
