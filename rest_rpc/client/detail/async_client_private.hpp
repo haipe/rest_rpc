@@ -97,6 +97,11 @@ namespace timax { namespace rpc
 			sub_manager_.sub(endpoint, protocol, std::forward<Func>(func), std::forward<EFunc>(efunc));
 		}
 
+		uint64_t hash(std::string const& topic) const
+		{
+			return hash_(topic);
+		}
+
 	private:
 		io_service_t&				ios_;
 		rpc_manager_t				rpc_manager_;

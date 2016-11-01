@@ -145,6 +145,7 @@ namespace timax { namespace rpc
 			if (!(connection_.socket().is_open() && running_flag_.load()))
 				return;
 
+			std::memset(&send_head_, 0, sizeof(req_header));
 			if (!error)
 			{
 				async_read(connection_.socket(), boost::asio::buffer(&recv_head_, sizeof(recv_head_)), boost::bind(
