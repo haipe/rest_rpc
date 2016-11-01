@@ -121,7 +121,7 @@ namespace timax { namespace rpc
 		{
 			auto hash = hash_(name);
 			auto itr = invokers_.find(hash);
-			if (itr == invokers_.end())
+			if (invokers_.end() != itr)
 				return false;
 
 			auto invoker = InvokerTraits::template get<codec_policy>(std::forward<Handlers>(handlers)...);
@@ -134,7 +134,7 @@ namespace timax { namespace rpc
 		{
 			auto hash = hash_(name);
 			auto itr = invokers_.find(hash);
-			if (itr == invokers_.end())
+			if (invokers_.end() != itr)
 				return false;
 
 			invoker_t invoker = std::forward<Handler>(handler);
