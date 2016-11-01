@@ -45,6 +45,7 @@ for(auto const& endpoint : endpoints)
 ```
 6. 客户端pub接口的，将会把转发协议的name当做topic，广播给所有监听这个topic的客户端，而不需要再服务器上注册handler；
 7. 服务器注册handler，将使用hash值代替字符串
+
 #### Bug修复
 1. rpc超时后异步调用链断开
 2. 客户端和服务器read大块消息时，因使用boost::bind，而发生了意外地拷贝，招致读取到不正确的地址
