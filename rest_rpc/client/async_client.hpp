@@ -64,6 +64,8 @@ namespace timax { namespace rpc
 		{
 			static_assert(is_forward_protocol<Protocol>::value, "Illegal protocol for publication!");
 			using rpc_task_t = rpc_task_alias<void>;
+			auto ctx = client_private_.make_pub_context(endpoint, protocol, std::forward<Args>(args)...);
+			return rpc_task_t{ client_private_, ctx };
 		}
 
 		template <typename Protocol, typename Func>

@@ -321,14 +321,14 @@ namespace timax { namespace rpc
 		void sub(tcp::endpoint const& endpoint, Protocol const& protocol, Func&& func)
 		{
 			auto channel = make_sub_channel(endpoint, protocol, std::forward<Func>(func));
-			sub_impl(endpoint, protocol.name(), channel);
+			sub_impl(endpoint, protocol.topic(), channel);
 		}
 
 		template <typename Protocol, typename Func, typename EFunc>
 		void sub(tcp::endpoint const& endpoint, Protocol const& protocol, Func&& func, EFunc&& error)
 		{
 			auto channel = make_sub_channel(endpoint, protocol, std::forward<Func>(func), std::forward<EFunc>(error));
-			//sub_impl(endpoint, protocol.name(), channel);
+			sub_impl(endpoint, protocol.topic(), channel);
 		}
 
 		void remove(sub_channel_ptr& channel)
@@ -381,7 +381,7 @@ namespace timax { namespace rpc
 			codec_policy cp{};
 			auto topic = protocol.pack_topic(cp);
 			auto proc_func = make_proc_func(protocol, std::forward<Func>(func));
-			return std::make_shared<sub_channel_t>(ios_, endpoint, protocol.name(), topic, std::move(proc_func));
+			return std::make_shared<sub_channel_t>(ios_, endpoint, protocol.topic(), topic, std::move(proc_func));
 		}
 
 		template <typename Protocol, typename Func, typename EFunc>
