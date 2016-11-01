@@ -47,6 +47,7 @@ namespace timax { namespace rpc
 	using duration_t = steady_timer_t::duration;
 
 	class connection;
+	using connection_ptr = std::shared_ptr<connection>;
 
 	template <typename Decode>
 	class server;

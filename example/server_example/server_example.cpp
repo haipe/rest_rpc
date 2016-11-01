@@ -57,7 +57,7 @@ int main()
 	server.register_handler("foo_add", timax::bind(&client::foo::add, &foo));
 	server.register_handler("dummy", client::dummy);
 	server.register_handler("add_with_conn", []
-		(std::shared_ptr<timax::rpc::connection> conn, int a, int b)
+		(timax::rpc::connection_ptr conn, int a, int b)
 	{
 		auto result = a + b;
 		if (result < 1)

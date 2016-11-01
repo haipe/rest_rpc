@@ -6,7 +6,6 @@ namespace timax { namespace rpc
 	{
 	public:
 		using post_func_t = std::function<void()>;
-		using connection_ptr = std::shared_ptr<connection>;
 		using context_ptr = std::shared_ptr<context_t>;
 		using context_container_t = std::list<std::pair<connection_ptr, context_ptr>>;
 

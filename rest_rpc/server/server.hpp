@@ -7,7 +7,6 @@ namespace timax { namespace rpc
 	{
 	public:
 		using codec_policy = CodecPolicy;
-		using connection_ptr = std::shared_ptr<connection>;
 		using connection_weak = std::weak_ptr<connection>;
 		using router_t = router<codec_policy>;
 		using invoker_t = typename router_t::invoker_t;
