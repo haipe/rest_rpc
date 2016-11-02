@@ -26,7 +26,9 @@ server.register_handler("add_with_conn", []
 });
 ```
 2.客户端添加private接口，拥有更高的权限和更多的流程控制
+
 3.server端的pub提供了一个纯转发的重载实现
+
 4.提供管理多个endpoint的工具
 ```cpp
 auto endpoints = timax::rpc::get_tcp_endpoints("127.0.0.1:5001|127.0.0.1:5002");
@@ -36,6 +38,7 @@ for(auto const& endpoint : endpoints)
 }
 ```
 5.客户端pub接口的，将会把转发协议的name当做topic，广播给所有监听这个topic的客户端，而不需要再服务器上注册handler；
+
 6.服务器注册handler，将使用hash值代替字符串
 
 #### Bug修复
