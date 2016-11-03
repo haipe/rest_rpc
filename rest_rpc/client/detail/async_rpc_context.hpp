@@ -32,8 +32,8 @@ namespace timax { namespace rpc
 			io_service_t& ios,
 			tcp::endpoint const& endpoint,
 			uint64_t hash,
-			buffer_t&& request,
-			std::string const& topic)
+			std::string const& topic,
+			buffer_t&& request)
 			: timer(ios)
 			, timeout(duration_t::max())
 			, endpoint(endpoint)
