@@ -29,12 +29,14 @@ namespace timax { namespace rpc
 				}
 			});
 
-			router_.register_raw_invoker(PUB, [this](connection_ptr, char const* data, size_t size)
+			router_.register_raw_invoker(PUB, [this](connection_ptr conn, char const* data, size_t size)
 			{
 				std::string topic;
 				std::tie(topic, data, size) =
 					std::move(get_topic_and_data(data, size));
 				pub(topic, data, size);
+				auto ctx = context_t::make_message(conn->head_, context_t::message_t{});
+				conn->response(ctx);
 			});
 		}
 
