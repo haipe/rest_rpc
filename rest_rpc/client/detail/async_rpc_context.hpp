@@ -92,12 +92,12 @@ namespace timax { namespace rpc
 			post_error();
 		}
 
-		void error(error_code errcode, std::string message = "")
+		void error(error_code errcode, std::string const& message = "")
 		{
 			err.set_code(errcode);
 			if (!message.empty())
 			{
-				err.set_message(std::move(message));
+				err.set_message(message);
 			}
 
 			post_error();
