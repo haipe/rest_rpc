@@ -32,9 +32,10 @@ namespace timax { namespace rpc
 			router_.register_raw_invoker(PUB, [this](connection_ptr conn, char const* data, size_t size)
 			{
 				std::string topic;
-				std::tie(topic, data, size) =
+				size_t length = 0;
+				std::tie(topic, data, length) =
 					std::move(get_topic_and_data(data, size));
-				pub(topic, data, size);
+				pub(topic, data, length);
 				auto ctx = context_t::make_message(conn->head_, context_t::message_t{});
 				conn->response(ctx);
 			});
