@@ -32,13 +32,13 @@ namespace timax { namespace rpc
 			io_service_t& ios,
 			tcp::endpoint const& endpoint,
 			uint64_t hash,
-			std::string const& topic,
+			std::string const& t,
 			buffer_t&& request)
 			: timer(ios)
 			, timeout(duration_t::max())
 			, endpoint(endpoint)
 			, req(std::move(request))
-			, topic(topic)
+			, topic(t)
 			, head(0, 0, static_cast<uint32_t>(req.size() + topic.length() + 1), hash)
 			, buffer({ 
 				boost::asio::buffer(&head, sizeof(head)), 
