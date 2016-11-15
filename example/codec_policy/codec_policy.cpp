@@ -32,12 +32,10 @@ int main()
 {
 	foo_t foo = { 1, 2.0, "ryuga waga teki wo kuraou!" };
 	msgpack::sbuffer buffer;
-	//msgpack::pack(buffer, foo);
+	msgpack::pack(buffer, foo);
 	
 	msgpack::unpacked msg;
 	msgpack::unpack(&msg, buffer.data(), buffer.size());
 	auto foo1 = msg.get().as<foo_t>();
-	using type = msgpack::adaptor::convert<foo_t>::type;
-	static_assert(std::is_same<type, int>::value, "");
 	return 0;
 }
