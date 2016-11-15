@@ -13,6 +13,9 @@
     <Filter Include="client\detail">
       <UniqueIdentifier>{bed6d52d-9edd-4bbb-a143-6923fd90b181}</UniqueIdentifier>
     </Filter>
+    <Filter Include="codec">
+      <UniqueIdentifier>{8a789685-3d7d-4e78-86e1-4eba49ee3e65}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\rest_rpc\base\codec.hpp">
@@ -96,6 +99,18 @@
     </ClInclude>
     <ClInclude Include="..\..\rest_rpc\server\invoker_traits.hpp">
       <Filter>server</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rest_rpc\codec\codec_msgpack.hpp">
+      <Filter>codec</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rest_rpc\codec\codec_kapok.hpp">
+      <Filter>codec</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rest_rpc\codec\codec_boost.hpp">
+      <Filter>codec</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rest_rpc\codec\codec.hpp">
+      <Filter>codec</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

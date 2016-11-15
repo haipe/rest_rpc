@@ -17,7 +17,7 @@ namespace client
 		ss << in.rdbuf();
 
 		configure cfg = { "127.0.0.1", "9000" };
-		DeSerializer dr;
+		kapok::DeSerializer dr;
 		try
 		{
 			dr.Parse(ss.str());
@@ -56,9 +56,9 @@ int main(void)
 		{
 			using namespace std::chrono_literals;
 			async_client->call(endpoint, client::add_pub, lhs, rhs++);
-			std::this_thread::sleep_for(0.5s);
+			std::this_thread::sleep_for(200ms);
 			async_client->pub(endpoint, client::sub_add, rhs);
-			std::this_thread::sleep_for(0.5s);
+			std::this_thread::sleep_for(200ms);
 		}
 	}
 	catch (timax::rpc::exception const& e)

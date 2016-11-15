@@ -9,51 +9,61 @@ namespace timax { namespace rpc
 		using buffer_t = typename codec_policy::buffer_type;
 		using success_function_t = std::function<void(char const*, size_t)>;
 		using on_error_function_t = std::function<void(exception const&)>;
+		using asio_buffers = std::vector<boost::asio::const_buffer>;
 
 		rpc_context(
 			io_service_t& ios,
 			tcp::endpoint const& endpoint,
-			std::string const& name,
+			uint64_t hash,
 			buffer_t&& request)
 			: timer(ios)
 			, timeout(duration_t::max())
 			, endpoint(endpoint)
-			, name(name)
 			, req(std::move(request))
+			, head(0, 0, static_cast<uint32_t>(req.size()), hash)
+			, buffer({ 
+				boost::asio::buffer(&head, sizeof(head)), 
+				boost::asio::buffer(req) })
 			, is_over(false)
 		{
-			head =
-			{
-				0, 0, 0,
-				static_cast<uint32_t>(req.size() + name.length() + 1)
-			};
+		}
+
+		rpc_context(
+			io_service_t& ios,
+			tcp::endpoint const& endpoint,
+			uint64_t hash,
+			std::string const& t,
+			buffer_t&& request)
+			: timer(ios)
+			, timeout(duration_t::max())
+			, endpoint(endpoint)
+			, req(std::move(request))
+			, topic(t)
+			, head(0, 0, static_cast<uint32_t>(req.size() + topic.length() + 1), hash)
+			, buffer({ 
+				boost::asio::buffer(&head, sizeof(head)), 
+				boost::asio::buffer(topic.c_str(), topic.length() + 1),
+				boost::asio::buffer(req) })
+			, is_over(false)
+		{
 		}
 
 		explicit rpc_context(io_service_t& ios)
 			: timer(ios)
 			, timeout(duration_t::max())
+			, buffer({ boost::asio::buffer(&head, sizeof(head)) })
+			, is_over(false)
 		{
-			std::memset(&head, 0, sizeof(head_t));
 		}
 
-		head_t& get_head()
+		req_header& get_head()
 		{
 			return head;
 		}
 
-		std::vector<boost::asio::const_buffer> get_send_message() const
+		decltype(auto) get_send_message() const
 		{
-			if (head.len > 0)
-			{
-				return
-				{
-					boost::asio::buffer(&head, sizeof(head_t)),
-					boost::asio::buffer(name.c_str(), name.length() + 1),
-					boost::asio::buffer(req)
-				};
-			}
-
-			return{ boost::asio::buffer(&head, sizeof(head_t)) };
+			return buffer;
 		}
 
 		auto get_recv_message(size_t size)
@@ -82,10 +92,10 @@ namespace timax { namespace rpc
 			post_error();
 		}
 
-		void error(error_code errcode, char const* message = nullptr)
+		void error(error_code errcode, std::string const& message = "")
 		{
 			err.set_code(errcode);
-			if (nullptr != message)
+			if (!message.empty())
 			{
 				err.set_message(message);
 			}
@@ -122,10 +132,11 @@ namespace timax { namespace rpc
 		steady_timer_t						timer;
 		steady_timer_t::duration				timeout;
 		tcp::endpoint							endpoint;
-		std::string							name;
-		head_t								head;
-		buffer_t								req;				// request buffer
-		std::vector<char>						rep;				// response buffer
+		buffer_t								req;					// request buffer
+		std::vector<char>						rep;					// response buffer
+		std::string							topic;
+		req_header							head;
+		asio_buffers							buffer;
 		exception							err;
 		success_function_t					on_ok;
 		on_error_function_t					on_error;

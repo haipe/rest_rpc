@@ -55,22 +55,15 @@ namespace timax { namespace rpc
 		{
 			static_assert(is_forward_protocol<Protocol>::value, "Illegal protocol for publication!");
 			using rpc_task_t = rpc_task_alias<void>;
-			auto ctx = client_private_.make_rpc_context(endpoint, protocol, std::forward<Args>(args)...);
+			auto ctx = client_private_.make_pub_context(endpoint, protocol, std::forward<Args>(args)...);
 			return rpc_task_t{ client_private_, ctx };
 		}
 
-		template <typename Protocol, typename Func>
-		void sub(tcp::endpoint const& endpoint, Protocol const& protocol, Func&& func)
+		template <typename Protocol, typename ... Handlers>
+		void sub(tcp::endpoint const& endpoint, Protocol const& protocol, Handlers&& ... handlers)
 		{
 			static_assert(is_forward_protocol<Protocol>::value, "Illegal protocol for subscription!");
-			client_private_.sub(endpoint, protocol, std::forward<Func>(func));
-		}
-
-		template <typename Protocol, typename Func, typename EFunc>
-		void sub(tcp::endpoint const& endpoint, Protocol const& protocol, Func&& func, EFunc&& efunc)
-		{
-			static_assert(is_forward_protocol<Protocol>::value, "Illegal protocol for subscription!");
-			client_private_.sub(endpoint, protocol, std::forward<Func>(func), std::forward<EFunc>(efunc));
+			client_private_.sub(endpoint, protocol, std::forward<Handlers>(handlers)...);
 		}
 
 	private:

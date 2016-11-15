@@ -16,7 +16,7 @@ namespace timax
 		{
 			try
 			{
-				log_ = spdlog::rotating_logger_mt("logger", file_name, 1024 * 1024 * 50, 2, true);
+				log_ = spdlog::rotating_logger_mt("logger", file_name, 1024 * 1024 * 50, 2);
 				console_log_ = spdlog::stdout_logger_mt("console");
 			}
 			catch (std::exception&)

@@ -28,6 +28,7 @@
 #include <array>
 #include <utility>
 #include <map>
+#include <unordered_map>
 #include <stdexcept>
 #include <type_traits>
 
@@ -46,6 +47,7 @@ namespace timax { namespace rpc
 	using duration_t = steady_timer_t::duration;
 
 	class connection;
+	using connection_ptr = std::shared_ptr<connection>;
 
 	template <typename Decode>
 	class server;
@@ -58,7 +60,7 @@ namespace timax { namespace rpc
 #include <rest_rpc/base/function_traits.hpp>
 #include <rest_rpc/base/consts.h>
 #include <rest_rpc/base/common.h>
-#include <rest_rpc/base/utils.hpp>
 #include <rest_rpc/base/excetion.hpp>
-#include <rest_rpc/base/codec.hpp>
+#include <rest_rpc/base/utils.hpp>
 #include <rest_rpc/base/io_service_pool.hpp>
+#include <rest_rpc/codec/codec.hpp>

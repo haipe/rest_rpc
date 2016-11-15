@@ -27,6 +27,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "kv_store_client", "kv_store
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_timeout_and_switch_endpoint", "test_timeout_and_switch_endpoint\test_timeout_and_switch_endpoint.vcxproj", "{1E568365-1958-4BEE-AF5D-BD2CB9F3608D}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "codec_policy", "codec_policy\codec_policy.vcxproj", "{ECFC6AFC-1C5A-4109-898C-82D426620DC1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lowlevel_test", "lowlevel_test", "{FAA777D7-F56B-475E-9496-F036356A8A61}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -81,8 +85,16 @@ Global
 		{1E568365-1958-4BEE-AF5D-BD2CB9F3608D}.Debug|x64.Build.0 = Debug|x64
 		{1E568365-1958-4BEE-AF5D-BD2CB9F3608D}.Release|x64.ActiveCfg = Release|x64
 		{1E568365-1958-4BEE-AF5D-BD2CB9F3608D}.Release|x64.Build.0 = Release|x64
+		{ECFC6AFC-1C5A-4109-898C-82D426620DC1}.Debug|x64.ActiveCfg = Debug|x64
+		{ECFC6AFC-1C5A-4109-898C-82D426620DC1}.Debug|x64.Build.0 = Debug|x64
+		{ECFC6AFC-1C5A-4109-898C-82D426620DC1}.Release|x64.ActiveCfg = Release|x64
+		{ECFC6AFC-1C5A-4109-898C-82D426620DC1}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{AD860AD3-BEAB-4B28-B789-65BFBB877C22} = {FAA777D7-F56B-475E-9496-F036356A8A61}
+		{ECFC6AFC-1C5A-4109-898C-82D426620DC1} = {FAA777D7-F56B-475E-9496-F036356A8A61}
 	EndGlobalSection
 EndGlobal

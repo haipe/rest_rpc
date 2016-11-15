@@ -23,6 +23,8 @@ namespace client
 
 int main()
 {
+	auto hash = std::hash<std::string>{}("sdfsfsdfsdfsdf");
+
 	using namespace std::string_literals;
 	auto string = "127.0.0.1:9000, 127.0.0.1:4000"s;
 	auto endpoints = timax::rpc::get_tcp_endpoints(string);
@@ -49,9 +51,6 @@ int main()
 	bind3(3, "WTF");
 	bind4(4, "shared_ptr");
 	bind_test(1);
-
-	int a = 0;
-	decltype(auto) b = std::forward<int&>(a);
 
 	return 0;
 }

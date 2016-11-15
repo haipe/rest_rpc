@@ -17,7 +17,7 @@ namespace client
 		ss << in.rdbuf();
 
 		configure cfg = { "127.0.0.1", "9000" };
-		DeSerializer dr;
+		kapok::DeSerializer dr;
 		try
 		{
 			dr.Parse(ss.str());

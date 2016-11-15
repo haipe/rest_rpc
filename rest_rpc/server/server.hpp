@@ -7,7 +7,6 @@ namespace timax { namespace rpc
 	{
 	public:
 		using codec_policy = CodecPolicy;
-		using connection_ptr = std::shared_ptr<connection>;
 		using connection_weak = std::weak_ptr<connection>;
 		using router_t = router<codec_policy>;
 		using invoker_t = typename router_t::invoker_t;
@@ -28,6 +27,17 @@ namespace timax { namespace rpc
 					lock_t lock{ mutex_ };
 					subscribers_.emplace(topic, conn);
 				}
+			});
+
+			router_.register_raw_invoker(PUB, [this](connection_ptr conn, char const* data, size_t size)
+			{
+				std::string topic;
+				size_t length = 0;
+				std::tie(topic, data, length) =
+					std::move(get_topic_and_data(data, size));
+				pub(topic, data, length);
+				auto ctx = context_t::make_message(conn->head_, context_t::message_t{});
+				conn->response(ctx);
 			});
 		}
 
@@ -71,26 +81,18 @@ namespace timax { namespace rpc
 			return router_.async_register_invoker(name, std::forward<Handler>(handler));
 		}
 
-		template <typename Handler>
-		bool register_forward_handler(std::string const& name, Handler&& handler)
-		{
-			return router_.register_forward_invoker(name, std::forward<Handler>(handler));
-		}
-
 		template <typename Result>
 		void pub(std::string const& topic, Result const& result, std::function<void()>&& postf = nullptr)
 		{
-			head_t h = { 0 };
 			auto buffer = pack_as_tuple_if_not(codec_policy{}, result);
-			auto ctx = context_t::make_message(h, std::move(buffer), std::move(postf));
+			auto ctx = context_t::make_message(std::move(buffer), std::move(postf));
 			public_to_subscriber(topic, ctx);
 		}
 
 		void pub(std::string const& topic, char const* data, size_t size, std::function<void()>&& posf = nullptr)
 		{
-			head_t h = { 0 };
 			context_t::message_t buffer{ data, data + size };
-			auto ctx = context_t::make_message(h, std::move(buffer), std::move(posf));
+			auto ctx = context_t::make_message(std::move(buffer), std::move(posf));
 			public_to_subscriber(topic, ctx);
 		}
 
@@ -117,24 +119,9 @@ namespace timax { namespace rpc
 
 			connection::set_on_read([this](connection_ptr conn_ptr)
 			{
-				// first get the buffer
+				auto& header = conn_ptr->get_read_header();
 				auto read_buffer = conn_ptr->get_read_buffer();
-
-				// second get the invoker name
-				std::string name = read_buffer.data();
-
-				// third find the invoker by name
-				auto data = read_buffer.data() + name.length() + 1;
-				auto size = read_buffer.size() - name.length() - 1;
-				router_.apply_invoker(name, conn_ptr, data, size);
-			});
-
-			connection::set_on_read_pages([this](connection_ptr conn_ptr, std::vector<char> read_buffer)
-			{
-				std::string name = read_buffer.data();
-				auto data = read_buffer.data() + name.length() + 1;
-				auto size = read_buffer.size() - name.length() - 1;
-				router_.apply_invoker(name, conn_ptr, data, size);
+				router_.apply_invoker(conn_ptr, read_buffer.data(), read_buffer.size());
 			});
 		}
 

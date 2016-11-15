@@ -35,12 +35,12 @@ namespace timax { namespace rpc
 		using result_type = typename boost::function_traits<Ret(Args...)>::result_type;
 		using signature_type = Ret(Args...);
 
-		explicit rpc_protocol_base(std::string name)
-			: name_(std::move(name))
+		explicit rpc_protocol_base(std::string const& name)
+			: name_(static_cast<uint64_t>(std::hash<std::string>{}(name)))
 		{
 		}
 
-		std::string const& name() const noexcept
+		uint64_t name() const noexcept
 		{
 			return name_;
 		}
@@ -59,7 +59,7 @@ namespace timax { namespace rpc
 		}
 
 	private:
-		std::string name_;
+		uint64_t		name_;
 	};
 
 	template <typename Ret, typename ... Args>
@@ -69,8 +69,8 @@ namespace timax { namespace rpc
 		using result_type = typename base_type::result_type;
 		using signature_type = typename base_type::signature_type;
 
-		explicit rpc_protocol(std::string name)
-			: base_type(std::move(name))
+		explicit rpc_protocol(std::string const& name)
+			: base_type(name)
 		{
 		}
 
@@ -122,13 +122,14 @@ namespace timax { namespace rpc
 	template <typename ... Args>
 	struct forward_protocol
 	{
-		forward_protocol(std::string name)
-			: name_(std::move(name))
-		{
-		}
-
 		static_assert(check_forward_protocol<Args...>::value, "illegal protocol parameters!");
 		using tuple_type = std::tuple<std::remove_cv_t<std::remove_reference_t<Args>>...>;
+
+		forward_protocol(std::string const& name)
+			: topic_name_(name)
+			, name_(static_cast<uint64_t>(std::hash<std::string>{}(name)))
+		{
+		}
 
 		template <typename CodecPolicy, typename ... TArgs>
 		auto pack(CodecPolicy const& cp, TArgs&& ... args) const
@@ -149,19 +150,25 @@ namespace timax { namespace rpc
 			return cp.template unpack<tuple_type>(data, size);
 		}
 
-		std::string const& name() const
+		uint64_t name() const
 		{
 			return name_;
+		}
+
+		std::string const& topic() const noexcept
+		{
+			return topic_name_;
 		}
 
 		template <typename CodecPolicy>
 		auto pack_topic(CodecPolicy const& cp) const
 		{
-			return cp.pack_args(name_);
+			return cp.pack_args(topic_name_);
 		}
 
 	private:
-		std::string name_;
+		std::string		topic_name_;
+		uint64_t			name_;
 	};
 
 	template <>
