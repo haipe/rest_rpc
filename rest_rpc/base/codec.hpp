@@ -94,7 +94,7 @@ namespace timax { namespace rpc
 			}
 
 		private:
-			std::vector<char>	buffer_;
+			std::vector<char>		buffer_;
 			size_t				offset_;
 		};
 
@@ -135,38 +135,7 @@ namespace timax { namespace rpc
 		msgpack::unpacked msg_;
 	};
 
-	struct kapok_codec
-	{
-		template<typename T>
-		T unpack(char const* data, size_t length)
-		{
-			kapok::DeSerializer dr;
-			dr.Parse(data, length);
-
-			T t;
-			dr.Deserialize(t);
-			return t;
-		}
-
-		using buffer_type = std::string;
-
-		template <typename ... Args>
-		buffer_type pack_args(Args&& ... args) const
-		{
-			auto args_tuple = std::make_tuple(std::forward<Args>(args)...);
-			kapok::Serializer sr;
-			sr.Serialize(args_tuple);
-			return sr.GetString();
-		}
-
-		template <typename T>
-		buffer_type pack(T&& t) const
-		{
-			kapok::Serializer sr;
-			sr.Serialize(std::forward<T>(t));
-			return sr.GetString();
-		}
-	};
+	
 
 	struct boost_codec
 	{
