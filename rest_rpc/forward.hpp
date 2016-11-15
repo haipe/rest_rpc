@@ -10,6 +10,8 @@
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/asio/steady_timer.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/archive/text_oarchive.hpp> 
+#include <boost/archive/text_iarchive.hpp>
 
 // standard libraries
 #include <cstdint>

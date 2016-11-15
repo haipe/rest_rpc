@@ -16,25 +16,6 @@ namespace timax{ namespace rpc
 		return false;
 	}
 
-	template<typename T>
-	inline std::string get_json(result_code code, const T& r, std::string const& tag)
-	{
-		Serializer sr;
-		response_msg<T> msg = { static_cast<int>(code), r };
-		sr.Serialize(msg);
-
-		std::string result = sr.GetString();
-
-		if (!tag.empty())
-		{
-			auto pos = result.rfind('}');
-			assert(pos != std::string::npos);
-			result.insert(pos, tag);
-		}
-
-		return std::move(result);
-	}
-
 	inline std::vector<tcp::endpoint> get_tcp_endpoints(std::string const& address_port_string_list)
 	{
 		std::vector<std::string> address_port_list;

@@ -63,7 +63,8 @@ namespace timax { namespace rpc
 
 		bool has_invoker(std::string const& name) const
 		{
-			return invokers_.find(name) != invokers_.end();
+			auto name_hash = hash_(name);
+			return invokers_.find(name_hash) != invokers_.end();
 		}
 
 		void apply_invoker(connection_ptr conn, char const* data, size_t size) const
