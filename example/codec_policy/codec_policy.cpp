@@ -37,5 +37,8 @@ int main()
 	msgpack::unpacked msg;
 	msgpack::unpack(&msg, buffer.data(), buffer.size());
 	auto foo1 = msg.get().as<foo_t>();
+	
+	std::cout << foo1.a << " | " << foo1.b << " | " << foo1.c << std::endl;
+
 	return 0;
 }
