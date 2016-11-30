@@ -28,7 +28,8 @@ namespace msgpack { MSGPACK_API_VERSION_NAMESPACE(v2)
 		{
 			msgpack::object const& operator()(msgpack::object const& o, T& v) const
 			{
-				make_define_array_from_tuple(v.Meta()).msgpack_unpack(o.convert());
+				auto tuple = v.Meta();
+				make_define_array_from_tuple(tuple).msgpack_unpack(o.convert());
 				return o;
 			}
 		};
@@ -39,7 +40,8 @@ namespace msgpack { MSGPACK_API_VERSION_NAMESPACE(v2)
 			template <typename Stream>
 			msgpack::packer<Stream>& operator()(msgpack::packer<Stream>& o, T const& v) const
 			{
-				make_define_array_from_tuple(v.Meta()).msgpack_pack(o);
+				auto tuple = v.Meta();
+				make_define_array_from_tuple(tuple).msgpack_pack(o);
 				return o;
 			}
 		};
