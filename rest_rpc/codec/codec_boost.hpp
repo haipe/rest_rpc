@@ -7,14 +7,33 @@ namespace boost { namespace serialization {
 	template<typename Archive, size_t... I, typename... Args>
 	void serialize(Archive & ar, const std::index_sequence<I...>&, std::tuple<Args...> & t, unsigned int version)
 	{
-		bool arr[] = { (ar & std::get<I>(t), false)... };
-		(void*)arr;
+		bool swallow[] = { (ar & std::get<I>(t), false)... };
+		(void*)swallow;
 	}
 
 	template<typename Archive, typename... Args>
 	void serialize(Archive & ar, std::tuple<Args...> & t, unsigned int version)
 	{
 		serialize(ar, std::make_index_sequence<sizeof... (Args)>{}, t, version);
+	}
+
+	template <typename Archive, typename Tuple, size_t ... Is>
+	void serialize_meta(Archive& ar, Tuple& tuple, std::index_sequence<Is...>)
+	{
+		bool swallow[] = { (ar & std::get<I>(tuple).second, false)... };
+		(void*)swallow;
+	}
+
+	template <typename Archive, typename Tuple>
+	void serialize_meta(Archive & ar, Tuple& tuple)
+	{
+		serialize_meta(ar, tuple, std::make_index_sequence<std::tuple_size<Tuple>::value>{});
+	}
+
+	template <typename Archive, typename T, typename = typename T::meta_tag>
+	auto serialize(Archive& ar, T& t, unsigned int version) -> std::enable_if_t<timax::rpc::has_meta_macro<T>::value>
+	{
+		serialize_meta(ar, t.Meta());
 	}
 
 } // end serialization namespace 
