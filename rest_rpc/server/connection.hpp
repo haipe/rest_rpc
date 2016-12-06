@@ -42,7 +42,8 @@ namespace timax { namespace rpc
 
 	private:
 		void handle_read_head(boost::system::error_code const& error);
-		void handle_read_body(boost::system::error_code const& error);		
+		void handle_read_body(boost::system::error_code const& error);
+		void handle_time_out(boost::system::error_code const& error);
 
 	private:
 		ios_wrapper						ios_wrapper_;

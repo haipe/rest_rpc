@@ -89,7 +89,7 @@ namespace timax { namespace rpc
 			return;
 
 		timer_.expires_from_now(time_out_);
-		// timer_.async_wait
+		timer_.async_wait(boost::bind(&connection::handle_time_out, this->shared_from_this(), asio_error));
 	}
 
 	void connection::cancel_timer()
@@ -120,12 +120,14 @@ namespace timax { namespace rpc
 			read_buffer_.resize(head_.len);
 		}
 
+		expires_timer();
 		async_read(socket_, boost::asio::buffer(read_buffer_.data(), head_.len),
 			boost::bind(&connection::handle_read_body, this->shared_from_this(), asio_error));
 	}
 
 	void connection::handle_read_head(boost::system::error_code const& error)
 	{
+		cancel_timer();
 		if (!socket_.is_open())
 			return;
 
@@ -142,7 +144,6 @@ namespace timax { namespace rpc
 		}
 		else
 		{
-			cancel_timer();
 			on_error(error);
 		}
 	}
@@ -164,6 +165,17 @@ namespace timax { namespace rpc
 		else
 		{
 			cancel_timer();
+			on_error(error);
+		}
+	}
+
+	void connection::handle_time_out(boost::system::error_code const& error)
+	{
+		if (!socket_.is_open())
+			return;
+
+		if (error == boost::asio::error::timed_out)
+		{
 			on_error(error);
 		}
 	}
