@@ -150,6 +150,8 @@ namespace timax { namespace rpc
 			other.dismiss_ = true;
 		}
 
+		rpc_task(rpc_task const& other) = default;
+
 		void do_call_managed()
 		{
 			if (!dismiss_)
@@ -247,8 +249,6 @@ namespace timax { namespace rpc
 			}
 			this->do_call_and_wait();
 		}
-
-		
 
 		result_type const& get(duration_t const& duration = duration_t::max()) &
 		{
