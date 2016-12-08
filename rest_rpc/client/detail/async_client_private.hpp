@@ -78,6 +78,11 @@ namespace timax { namespace rpc
 			rpc_manager_.call(context);
 		}
 
+		void cancel(context_ptr const& context)
+		{
+			rpc_manager_.cancel(context);
+		}
+
 		template <typename Protocol, typename ... Args>
 		auto make_rpc_context(tcp::endpoint const& endpoint, Protocol const& protocol, Args&& ... args)
 		{
@@ -125,7 +130,7 @@ namespace timax { namespace rpc
 		using client_private_t = async_client_private<codec_policy>;
 		using context_ptr = typename client_private_t::context_ptr;
 		
-	public:
+	protected:
 		rpc_task(client_private_t& client, context_ptr& ctx)
 			: client_(client)
 			, ctx_(ctx)
@@ -164,13 +169,20 @@ namespace timax { namespace rpc
 			}
 		}
 
+	public:
+		void cancel()
+		{
+			this->client_.cancel(ctx_);
+		}
+
+	protected:
 		client_private_t&		client_;
 		context_ptr			ctx_;
 		bool					dismiss_;
 	};
 
 	template <typename CodecPolicy, typename Ret>
-	class typed_rpc_task : protected  rpc_task<CodecPolicy>
+	class typed_rpc_task : public rpc_task<CodecPolicy>
 	{
 	public:
 		using codec_policy = CodecPolicy;
@@ -236,6 +248,8 @@ namespace timax { namespace rpc
 			this->do_call_and_wait();
 		}
 
+		
+
 		result_type const& get(duration_t const& duration = duration_t::max()) &
 		{
 			wait(duration);
@@ -247,7 +261,7 @@ namespace timax { namespace rpc
 	};
 
 	template <typename CodecPolicy>
-	class typed_rpc_task<CodecPolicy, void> : protected rpc_task<CodecPolicy>
+	class typed_rpc_task<CodecPolicy, void> : public rpc_task<CodecPolicy>
 	{
 	public:
 		using codec_policy = CodecPolicy;

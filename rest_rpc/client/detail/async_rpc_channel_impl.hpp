@@ -73,6 +73,17 @@ namespace timax { namespace rpc
 	}
 
 	template <typename CodecPolicy>
+	void rpc_channel<CodecPolicy>::cancel(context_ptr const& ctx)
+	{
+		auto self = this->shared_from_this();
+		rpc_mgr_.get_io_service().post([self, this, ctx]
+		{
+			calls_.get_call_from_map(ctx->head.id);
+			ctx->error(error_code::CANCEL, "Rpc cancled by client");
+		});
+	}
+
+	template <typename CodecPolicy>
 	void rpc_channel<CodecPolicy>::start_rpc_service()
 	{
 		status_ = status_t::running;
@@ -310,6 +321,12 @@ namespace timax { namespace rpc
 	void rpc_manager<CodecPolicy>::call(context_ptr& ctx)
 	{
 		get_session(ctx->endpoint)->call(ctx);
+	}
+
+	template <typename CodecPolicy>
+	void rpc_manager<CodecPolicy>::cancel(context_ptr const& ctx)
+	{
+		get_session(ctx->endpoint)->cancel(ctx);
 	}
 
 	template <typename CodecPolicy>

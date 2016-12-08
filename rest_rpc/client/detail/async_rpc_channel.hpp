@@ -29,6 +29,7 @@ namespace timax { namespace rpc
 		inline ~rpc_channel();
 		inline void start();
 		inline void call(context_ptr& ctx);
+		inline void cancel(context_ptr const& ctx);
 
 	private:
 		inline void start_rpc_service();
@@ -80,6 +81,7 @@ namespace timax { namespace rpc
 	public:
 		inline explicit rpc_manager(io_service_t& ios);
 		inline void call(context_ptr& ctx);
+		inline void cancel(context_ptr const& ctx);
 		inline io_service_t& get_io_service();
 
 	private:

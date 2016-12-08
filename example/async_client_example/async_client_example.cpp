@@ -68,7 +68,16 @@ void async_compose_example(tcp::endpoint const& endpoint)
 	timax::rpc::blob_t p = { "it is a test", 13 };
 	auto task = asycn_client.call(endpoint, client::compose, 1, "test", p, 2.5);
 
-	task.wait();
+	task.cancel();
+
+	try
+	{
+		task.wait();
+	}
+	catch (timax::rpc::exception const& exception)
+	{
+		std::cout << exception.get_error_message() << std::endl;
+	}
 }
 
 int main()

@@ -164,7 +164,6 @@ namespace timax { namespace rpc
 		}
 		else
 		{
-			cancel_timer();
 			on_error(error);
 		}
 	}

@@ -74,13 +74,17 @@ namespace timax { namespace rpc
 
 		void ok()
 		{
-			if (on_ok)
-				on_ok(rep.data(), rep.size());
+			if (!is_over)
+			{
+				is_over = true;
 
-			is_over = true;
+				if (on_ok)
+					on_ok(rep.data(), rep.size());
 
-			if (nullptr != barrier)
-				barrier->notify();
+				if (nullptr != barrier)
+					barrier->notify();
+			}
+			
 		}
 
 		void error()
@@ -105,13 +109,17 @@ namespace timax { namespace rpc
 
 		void post_error()
 		{
-			if (on_error)
-				on_error(err);
+			if (!is_over)
+			{
+				is_over = true;
 
-			is_over = true;
+				if (on_error)
+					on_error(err);
 
-			if (nullptr != barrier)
-				barrier->notify();
+				if (nullptr != barrier)
+					barrier->notify();
+			}
+			
 		}
 
 		void create_barrier()
