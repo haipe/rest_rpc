@@ -199,6 +199,8 @@ namespace timax { namespace rpc
 		{
 		}
 
+		typed_rpc_task(typed_rpc_task const&) = default;
+
 		template <typename F>
 		typed_rpc_task&& on_ok(F&& f) &&
 		{
@@ -275,6 +277,8 @@ namespace timax { namespace rpc
 			: base_type(client, ctx)
 		{
 		}
+
+		typed_rpc_task(typed_rpc_task const&) = default;
 
 		template <typename F>
 		typed_rpc_task&& on_ok(F&& f) &&
