@@ -2,8 +2,9 @@
 
 namespace timax { namespace rpc 
 {
-	connection::connection(io_service_t& ios, duration_t time_out)
+	connection::connection(io_service_t& ios, router_base& router, duration_t time_out)
 		: ios_wrapper_(ios)
+		, router_(router)
 		, socket_(ios)
 		, read_buffer_(PAGE_SIZE)
 		, timer_(ios)
@@ -37,33 +38,7 @@ namespace timax { namespace rpc
 	void connection::on_error(boost::system::error_code const& error)
 	{
 		close();
-
-		decltype(auto) on_error = get_on_error();
-
-		if (on_error)
-			on_error(this->shared_from_this(), error);
-	}
-
-	void connection::set_on_error(connection_on_error_t on_error)
-	{
-		get_on_error() = std::move(on_error);
-	}
-
-	void connection::set_on_read(connection_on_read_t on_read)
-	{
-		get_on_read() = std::move(on_read);
-	}
-
-	connection::connection_on_error_t& connection::get_on_error()
-	{
-		static connection_on_error_t on_error;
-		return on_error;
-	}
-
-	connection::connection_on_read_t& connection::get_on_read()
-	{
-		static connection_on_read_t on_read;
-		return on_read;
+		router_.on_error(this->shared_from_this(), error);
 	}
 
 	blob_t connection::get_read_buffer() const
@@ -156,10 +131,7 @@ namespace timax { namespace rpc
 
 		if (!error)
 		{
-			decltype(auto) on_read = get_on_read();
-			if (on_read)
-				on_read(this->shared_from_this());
-
+			router_.on_read(this->shared_from_this());
 			read_head();
 		}
 		else

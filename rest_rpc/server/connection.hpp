@@ -14,11 +14,9 @@ namespace timax { namespace rpc
 
 		using connection_ptr = std::shared_ptr<connection>;
 		using context_ptr = std::shared_ptr<context_t>;
-		using connection_on_error_t = std::function<void(connection_ptr, boost::system::error_code const& error)>;
-		using connection_on_read_t = std::function<void(connection_ptr)>;
 
 	public:
-		connection(io_service_t& ios, duration_t time_out);
+		connection(io_service_t& ios, router_base& router, duration_t time_out);
 		void close();
 
 	protected:
@@ -26,10 +24,6 @@ namespace timax { namespace rpc
 		void start();
 		void response(context_ptr& ctx);
 		void on_error(boost::system::error_code const& error);
-		static void set_on_error(connection_on_error_t on_error);
-		static void set_on_read(connection_on_read_t on_read);
-		static connection_on_error_t& get_on_error();
-		static connection_on_read_t& get_on_read();
 		blob_t get_read_buffer() const;
 		req_header const& get_read_header() const;
 
@@ -47,6 +41,7 @@ namespace timax { namespace rpc
 
 	private:
 		ios_wrapper						ios_wrapper_;
+		router_base&						router_;
 		tcp::socket						socket_;
 		req_header						head_;
 		std::vector<char>					read_buffer_;

@@ -111,24 +111,24 @@ namespace timax { namespace rpc
 	private:
 		void init_callback_functions()
 		{
-			connection::set_on_error([this](connection_ptr conn_ptr, boost::system::error_code const& error)
-			{
-				// TODO ...
-				remove_sub_conn(conn_ptr);
-			});
-
-			connection::set_on_read([this](connection_ptr conn_ptr)
+			router_.set_on_read([this](connection_ptr conn_ptr)
 			{
 				auto& header = conn_ptr->get_read_header();
 				auto read_buffer = conn_ptr->get_read_buffer();
 				router_.apply_invoker(conn_ptr, read_buffer.data(), read_buffer.size());
+			});
+
+			router_.set_on_error([this](connection_ptr conn_ptr, boost::system::error_code const& error)
+			{
+				// TODO ...
+				remove_sub_conn(conn_ptr);
 			});
 		}
 
 		void do_accept()
 		{
 			auto new_connection = std::make_shared<connection>(
-				ios_pool_.get_io_service(), time_out_);
+				ios_pool_.get_io_service(), router_, time_out_);
 
 			acceptor_.async_accept(new_connection->socket(), 
 				[this, new_connection](boost::system::error_code const& error)

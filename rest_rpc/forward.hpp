@@ -48,6 +48,7 @@ namespace timax { namespace rpc
 	using steady_timer_t = boost::asio::steady_timer;
 	using duration_t = steady_timer_t::duration;
 
+	class router_base;
 	class connection;
 	using connection_ptr = std::shared_ptr<connection>;
 

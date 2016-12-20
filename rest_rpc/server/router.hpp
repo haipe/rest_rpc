@@ -2,15 +2,65 @@
 
 namespace timax { namespace rpc 
 {
+	class router_base : boost::noncopyable
+	{
+	public:
+		using connection_ptr = std::shared_ptr<connection>;
+		using invoker_t = std::function<void(connection_ptr, char const*, size_t)>;
+		using invoker_container = std::unordered_map<uint64_t, invoker_t>;
+		using on_read_func = std::function<void(connection_ptr)>;
+		using on_error_func = std::function<void(connection_ptr, boost::system::error_code const& error)>;
+
+	public:
+		bool register_invoker(uint64_t name, invoker_t&& invoker)
+		{
+			return invokers_.emplace(name, std::move(invoker)).second;
+		}
+
+		bool has_invoker(uint64_t name) noexcept
+		{
+			invokers_.find(name) != invokers_.end();
+		}
+
+		void on_read(connection_ptr const& conn_ptr)
+		{
+			if(on_read_)
+				on_read_(conn_ptr);
+		}
+
+		void on_error(connection_ptr const& conn_ptr, boost::system::error_code const& error)
+		{
+			if (on_error_)
+				on_error_(conn_ptr, error);
+		}
+
+		void set_on_read(on_read_func&& on_read)
+		{
+			on_read_ = std::move(on_read);
+		}
+
+		void set_on_error(on_error_func&& on_error)
+		{
+			on_error_ = std::move(on_error);
+		}
+
+	protected:
+		invoker_container			invokers_;
+		on_read_func				on_read_;
+		on_error_func				on_error_;
+	};
+
 	template <typename CodecPolicy>
-	class router : boost::noncopyable
+	class router : public router_base
 	{
 	public:
 		using codec_policy = CodecPolicy;
 		using message_t = typename codec_policy::buffer_type;
-		using connection_ptr = std::shared_ptr<connection>;
-		using invoker_t = std::function<void(connection_ptr, char const*, size_t)>;
-		using invoker_container = std::unordered_map<uint64_t, invoker_t>;
+		using connection_ptr = typename router_base::connection_ptr;
+		using invoker_t = typename router_base::invoker_t;
+		using invoker_container = typename router_base::invoker_container;
+		using on_read_func = typename router_base::on_read_func;
+		using on_error_func = typename router_base::on_error_func;
 
 	public:
 		template <typename Handler, typename PostFunc>
@@ -64,7 +114,7 @@ namespace timax { namespace rpc
 		bool has_invoker(std::string const& name) const
 		{
 			auto name_hash = hash_(name);
-			return invokers_.find(name_hash) != invokers_.end();
+			return router_base::has_invoker(name_hash);
 		}
 
 		void apply_invoker(connection_ptr conn, char const* data, size_t size) const
@@ -72,8 +122,8 @@ namespace timax { namespace rpc
 			static auto cannot_find_invoker_error = codec_policy{}.pack(exception{ error_code::FAIL, "Cannot find handler!" });
 
 			auto& header = conn->get_read_header();
-			auto itr = invokers_.find(header.hash);
-			if (invokers_.end() == itr)
+			auto itr = this->invokers_.find(header.hash);
+			if (this->invokers_.end() == itr)
 			{
 				auto ctx = context_t::make_error_message(header, cannot_find_invoker_error);
 				conn->response(ctx);
@@ -107,12 +157,12 @@ namespace timax { namespace rpc
 		bool register_invoker_impl(std::string const& name, Handlers&& ... handlers)
 		{
 			auto hash = hash_(name);
-			auto itr = invokers_.find(hash);
-			if (invokers_.end() != itr)
+			auto itr = this->invokers_.find(hash);
+			if (this->invokers_.end() != itr)
 				return false;
 
 			auto invoker = InvokerTraits::template get<codec_policy>(std::forward<Handlers>(handlers)...);
-			invokers_.emplace(hash, std::move(invoker));
+			this->invokers_.emplace(hash, std::move(invoker));
 			return true;
 		}
 
@@ -120,18 +170,17 @@ namespace timax { namespace rpc
 		bool register_invoker_impl(std::string const& name, Handler&& handler)
 		{
 			auto hash = hash_(name);
-			auto itr = invokers_.find(hash);
-			if (invokers_.end() != itr)
+			auto itr = this->invokers_.find(hash);
+			if (this->invokers_.end() != itr)
 				return false;
 
 			invoker_t invoker = std::forward<Handler>(handler);
-			invokers_.emplace(hash, std::move(invoker));
+			this->invokers_.emplace(hash, std::move(invoker));
 			return true;
 		}
 
 	private:
 		// mutable std::mutex		mutex_;
-		invoker_container			invokers_;
 		std::hash<std::string>	hash_;
 	};
 } }
