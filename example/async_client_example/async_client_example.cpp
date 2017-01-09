@@ -80,6 +80,23 @@ void async_compose_example(tcp::endpoint const& endpoint)
 	}
 }
 
+void test_timeout(tcp::endpoint const& endpoint)
+{
+	using namespace std::chrono_literals;
+	for (auto loop = 0; loop < 10000; ++loop)
+	{
+		asycn_client.call(endpoint, client::add, 1, loop).
+			on_error([loop](auto const& error)
+		{
+			std::cout << "Error: " << error.get_error_message() << " loop" << loop << std::endl;
+		}).on_ok([loop](auto r)
+		{
+			std::cout << "OK loop" << loop << std::endl;
+		});
+		std::this_thread::sleep_for(10s);
+	}
+}
+
 int main()
 {
 	timax::log::get().init("async_client_example.lg");
@@ -87,8 +104,9 @@ int main()
 	auto endpoint = timax::rpc::get_tcp_endpoint("127.0.0.1", 9000);
 	
 	async_client_rpc_example(endpoint);
-	async_client_sub_example(endpoint);
+	//async_client_sub_example(endpoint);
 	async_compose_example(endpoint);
+	test_timeout(endpoint);
 	std::getchar();
 	return 0;
 }

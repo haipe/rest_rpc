@@ -49,7 +49,7 @@ int main()
 {
 	timax::log::get().init("rest_rpc_server.lg");
 	using server_t = timax::rpc::server<timax::rpc::msgpack_codec>;
-	server_t server{ port, pool_size };
+	server_t server{ port, pool_size, std::chrono::seconds{ 2 } };
 	client::foo foo{};
 
 	server.register_handler("add", client::add);
