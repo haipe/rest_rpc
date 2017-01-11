@@ -20,7 +20,7 @@ namespace boost { namespace serialization {
 	template <typename Archive, typename Tuple, size_t ... Is>
 	void serialize_meta(Archive& ar, Tuple& tuple, std::index_sequence<Is...>)
 	{
-		bool swallow[] = { (ar & std::get<I>(tuple).second, false)... };
+		bool swallow[] = { (ar & std::get<Is>(tuple).second, false)... };
 		(void*)swallow;
 	}
 
