@@ -18,6 +18,7 @@ namespace timax { namespace rpc
 	public:
 		connection(io_service_t& ios, router_base& router, duration_t time_out);
 		void close();
+		io_service_t& get_io_service();
 
 	protected:
 		tcp::socket& socket();

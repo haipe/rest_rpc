@@ -24,6 +24,11 @@ namespace timax { namespace rpc
 		socket_.close(ignored_ec);
 	}
 
+	io_service_t& connection::get_io_service()
+	{
+		return ios_wrapper_.get_io_service();
+	}
+
 	tcp::socket& connection::socket()
 	{
 		return socket_;
