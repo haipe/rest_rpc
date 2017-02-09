@@ -36,7 +36,7 @@ namespace timax{ namespace rpc
 		return tcp_endpoints;
 	}
 
-	static tcp::endpoint get_tcp_endpoint(std::string const& address, uint16_t port)
+	inline static tcp::endpoint get_tcp_endpoint(std::string const& address, uint16_t port)
 	{
 		return{ boost::asio::ip::address::from_string(address), port };
 	}

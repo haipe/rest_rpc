@@ -82,7 +82,6 @@ namespace timax { namespace rpc
 
 	void connection::read_head()
 	{
-		expires_timer();
 		async_read(socket_, boost::asio::buffer(&head_, sizeof(head_)),
 			boost::bind(&connection::handle_read_head, this->shared_from_this(), asio_error));
 	}
@@ -100,6 +99,7 @@ namespace timax { namespace rpc
 			read_buffer_.resize(head_.len);
 		}
 
+		expires_timer();
 		async_read(socket_, boost::asio::buffer(read_buffer_.data(), head_.len),
 			boost::bind(&connection::handle_read_body, this->shared_from_this(), asio_error));
 	}
@@ -113,7 +113,6 @@ namespace timax { namespace rpc
 		{
 			if (head_.len == 0)
 			{
-				cancel_timer();
 				read_head();
 			}
 			else

@@ -113,12 +113,12 @@ namespace timax { namespace rpc
 		{
 			router_.set_on_read([this](connection_ptr conn_ptr)
 			{
-				auto& header = conn_ptr->get_read_header();
+				//auto& header = conn_ptr->get_read_header();
 				auto read_buffer = conn_ptr->get_read_buffer();
 				router_.apply_invoker(conn_ptr, read_buffer.data(), read_buffer.size());
 			});
 
-			router_.set_on_error([this](connection_ptr conn_ptr, boost::system::error_code const& error)
+			router_.set_on_error([this](connection_ptr conn_ptr, boost::system::error_code const& /*error*/)
 			{
 				// TODO ...
 				remove_sub_conn(conn_ptr);
