@@ -23,9 +23,15 @@ namespace client
 
 	struct foo
 	{
-		int add(int a, int b)
+		template <typename T>
+		T add_impl(T a, T b)
 		{
 			return a + b;
+		}
+
+		int add(int a, int b)
+		{
+			return add_impl(a, b);
 		}
 	};
 }

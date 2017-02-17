@@ -112,7 +112,7 @@ namespace timax { namespace rpc
 				CodecPolicy cp{};
 				auto args_tuple = cp.template unpack<args_tuple_type>(data, size);
 				invoker_call_handler(h, conn, args_tuple);
-				auto ctx = context_t::make_message(conn->head_, context_t::message_t{});
+				auto ctx = context_t::make_message_with_head(conn->head_, context_t::message_t{});
 				conn->response(ctx);
 			};
 			return invoker;
@@ -128,7 +128,7 @@ namespace timax { namespace rpc
 				CodecPolicy cp{};
 				auto args_tuple = cp.template unpack<args_tuple_type>(data, size);
 				invoker_call_handler(h, conn, args_tuple);
-				auto ctx = context_t::make_message(conn->head_, context_t::message_t{}, [conn, &p] { p(conn); });
+				auto ctx = context_t::make_message_with_head(conn->head_, context_t::message_t{}, [conn, &p] { p(conn); });
 				conn->response(ctx);
 			};
 			return invoker;
@@ -153,7 +153,7 @@ namespace timax { namespace rpc
 				auto args_tuple = cp.template unpack<args_tuple_type>(data, size);
 				auto result = invoker_call_handler(h, conn, args_tuple);
 				auto message = cp.pack(result);
-				auto ctx = context_t::make_message(conn->head_, std::move(message));
+				auto ctx = context_t::make_message_with_head(conn->head_, std::move(message));
 				conn->response(ctx);
 			};
 			return invoker;
@@ -170,7 +170,7 @@ namespace timax { namespace rpc
 				auto args_tuple = cp.template unpack<args_tuple_type>(data, size);
 				auto result = invoker_call_handler(h, conn, args_tuple);
 				auto message = cp.pack(result);
-				auto ctx = context_t::make_message(conn->head_, std::move(message),
+				auto ctx = context_t::make_message_with_head(conn->head_, std::move(message),
 					[conn, r = std::move(result), &p]
 				{
 					p(conn, r);
@@ -200,7 +200,7 @@ namespace timax { namespace rpc
 				std::async([conn, at = std::move(args_tuple), head = conn->head_, &h]
 				{
 					invoker_call_handler(h, conn, at);
-					auto ctx = context_t::make_message(head, context_t::message_t{});
+					auto ctx = context_t::make_message_with_head(head, context_t::message_t{});
 					conn->response(ctx);
 				});
 				
@@ -220,7 +220,7 @@ namespace timax { namespace rpc
 				std::async([conn, at = std::move(args_tuple), head = conn->head_, &h, &p]
 				{
 					invoker_call_handler(h, conn, at);
-					auto ctx = context_t::make_message(head, context_t::message_t{}, [conn, &p] { p(conn); });
+					auto ctx = context_t::make_message_with_head(head, context_t::message_t{}, [conn, &p] { p(conn); });
 					conn->response(ctx);
 				});
 				
@@ -249,7 +249,7 @@ namespace timax { namespace rpc
 				{
 					auto result = invoker_call_handler(h, conn, at);
 					auto message = CodecPolicy{}.pack(result);
-					auto ctx = context_t::make_message(head, std::move(message));
+					auto ctx = context_t::make_message_with_head(head, std::move(message));
 					conn->response(ctx);
 				});
 			};
@@ -270,7 +270,7 @@ namespace timax { namespace rpc
 				{
 					auto result = invoker_call_handler(h, conn, at);
 					auto message = CodecPolicy{}.pack(result);
-					auto ctx = context_t::make_message(head, std::move(message),
+					auto ctx = context_t::make_message_with_head(head, std::move(message),
 						[conn, &p, r = std::move(result)]
 					{
 						p(conn, r);

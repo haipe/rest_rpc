@@ -36,7 +36,7 @@ namespace timax { namespace rpc
 				std::tie(topic, data, length) =
 					std::move(get_topic_and_data(data, size));
 				pub(topic, data, length);
-				auto ctx = context_t::make_message(conn->head_, context_t::message_t{});
+				auto ctx = context_t::make_message_with_head(conn->head_, context_t::message_t{});
 				conn->response(ctx);
 			});
 		}
@@ -85,14 +85,14 @@ namespace timax { namespace rpc
 		void pub(std::string const& topic, Result const& result, std::function<void()>&& postf = nullptr)
 		{
 			auto buffer = pack_as_tuple_if_not(codec_policy{}, result);
-			auto ctx = context_t::make_message(std::move(buffer), std::move(postf));
+			auto ctx = context_t::make_message_without_head(std::move(buffer), std::move(postf));
 			public_to_subscriber(topic, ctx);
 		}
 
 		void pub(std::string const& topic, char const* data, size_t size, std::function<void()>&& posf = nullptr)
 		{
 			context_t::message_t buffer{ data, data + size };
-			auto ctx = context_t::make_message(std::move(buffer), std::move(posf));
+			auto ctx = context_t::make_message_without_head(std::move(buffer), std::move(posf));
 			public_to_subscriber(topic, ctx);
 		}
 

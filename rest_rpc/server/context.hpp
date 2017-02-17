@@ -54,19 +54,19 @@ namespace timax { namespace rpc
 		template <typename Message>
 		static auto make_error_message(req_header const& h, Message&& msg, post_func_t postf = nullptr)
 		{
-			auto ctx = make_message(h, std::forward<Message>(msg), std::move(postf));
+			auto ctx = make_message_with_head(h, std::forward<Message>(msg), std::move(postf));
 			ctx->head.code = static_cast<int16_t>(result_code::FAIL);
 			return ctx;
 		}
 
 		template <typename Message>
-		static auto make_message(req_header const& h, Message&& msg, post_func_t postf = nullptr)
+		static auto make_message_with_head(req_header const& h, Message&& msg, post_func_t postf = nullptr)
 		{
 			return std::make_shared<context_t>(h, std::forward<Message>(msg), std::move(postf));
 		}
 
 		template <typename Message>
-		static auto make_message(Message&& msg, post_func_t postf = nullptr)
+		static auto make_message_without_head(Message&& msg, post_func_t postf = nullptr)
 		{
 			return std::make_shared<context_t>(std::forward<Message>(msg), std::move(postf));
 		}
