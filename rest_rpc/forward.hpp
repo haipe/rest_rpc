@@ -33,6 +33,7 @@
 #include <unordered_map>
 #include <stdexcept>
 #include <type_traits>
+#include <future>
 
 // third-party libraries
 #include <kapok/Kapok.hpp>
