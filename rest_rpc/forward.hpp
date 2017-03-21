@@ -67,4 +67,5 @@ namespace timax { namespace rpc
 #include <rest_rpc/base/excetion.hpp>
 #include <rest_rpc/base/utils.hpp>
 #include <rest_rpc/base/io_service_pool.hpp>
+#include <rest_rpc/base/hash.hpp>
 #include <rest_rpc/codec/codec.hpp>

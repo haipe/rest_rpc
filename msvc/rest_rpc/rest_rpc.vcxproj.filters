@@ -112,5 +112,8 @@
     <ClInclude Include="..\..\rest_rpc\codec\codec.hpp">
       <Filter>codec</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\rest_rpc\base\hash.hpp">
+      <Filter>base</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
