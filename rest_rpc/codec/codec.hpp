@@ -1,8 +1,7 @@
 #pragma once
 
-#include "codec_kapok.hpp"
 #include "codec_msgpack.hpp"
-#include "codec_boost.hpp"
+#include "codec_json.hpp"
 
 namespace timax { namespace rpc
 {
