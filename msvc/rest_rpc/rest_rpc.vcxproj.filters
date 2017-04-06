@@ -115,5 +115,8 @@
     <ClInclude Include="..\..\rest_rpc\base\hash.hpp">
       <Filter>base</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\rest_rpc\base\reflection.hpp">
+      <Filter>base</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

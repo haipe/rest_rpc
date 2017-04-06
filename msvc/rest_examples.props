@@ -10,6 +10,7 @@
     <ClCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)../;$(BOOST_INCLUDE_PATH);$(SolutionDir)../kapok;$(SolutionDir)../spdlog/include;$(SolutionDir)../msgpack/include;$(SolutionDir)../thread-pool-cpp/thread_pool;$(SolutionDir)../kapok/fmt</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>FMT_HEADER_ONLY;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(BOOST_LIB_PATH);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>

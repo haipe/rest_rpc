@@ -4,16 +4,10 @@ namespace msgpack { MSGPACK_API_VERSION_NAMESPACE(v2)
 {
 	namespace adaptor
 	{
-		template<size_t I, typename Tuple>
-		decltype(auto) get_tuple_element(Tuple& tuple)
-		{
-			return std::get<I>(tuple).second;
-		}
-
 		template <typename Tuple, size_t ... Is>
 		auto make_define_array_from_tuple_impl(Tuple& tuple, std::index_sequence<Is...>)
 		{
-			return v1::type::make_define_array(get_tuple_element<Is>(tuple)...);
+			return v1::type::make_define_array(std::get<Is>(tuple)...);
 		}
 
 		template <typename Tuple>
@@ -24,23 +18,23 @@ namespace msgpack { MSGPACK_API_VERSION_NAMESPACE(v2)
 		}
 
 		template <typename T>
-		struct convert<T, std::enable_if_t<timax::rpc::has_meta_macro<T>::value>>
+		struct convert<T, std::enable_if_t<timax::rfl::is_reflection<T>::value>>
 		{
 			msgpack::object const& operator()(msgpack::object const& o, T& v) const
 			{
-				auto tuple = v.Meta();
+				auto tuple = timax::rfl::get_ref(v);
 				make_define_array_from_tuple(tuple).msgpack_unpack(o.convert());
 				return o;
 			}
 		};
 
 		template <typename T>
-		struct pack<T, std::enable_if_t<timax::rpc::has_meta_macro<T>::value>>
+		struct pack<T, std::enable_if_t<timax::rfl::is_reflection<T>::value>>
 		{
 			template <typename Stream>
 			msgpack::packer<Stream>& operator()(msgpack::packer<Stream>& o, T const& v) const
 			{
-				auto tuple = v.Meta();
+				auto tuple = timax::rfl::get(v);
 				make_define_array_from_tuple(tuple).msgpack_pack(o);
 				return o;
 			}

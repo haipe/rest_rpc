@@ -19,6 +19,7 @@
     <ClInclude Include="..\..\rest_rpc\base\hash.hpp" />
     <ClInclude Include="..\..\rest_rpc\base\io_service_pool.hpp" />
     <ClInclude Include="..\..\rest_rpc\base\log.hpp" />
+    <ClInclude Include="..\..\rest_rpc\base\reflection.hpp" />
     <ClInclude Include="..\..\rest_rpc\base\utils.hpp" />
     <ClInclude Include="..\..\rest_rpc\client.hpp" />
     <ClInclude Include="..\..\rest_rpc\client\async_client.hpp" />

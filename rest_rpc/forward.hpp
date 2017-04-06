@@ -36,9 +36,9 @@
 #include <future>
 
 // third-party libraries
-#include <kapok/Kapok.hpp>
+//#include <kapok/Kapok.hpp>
 #include <msgpack.hpp>
-#include <thread_pool.hpp>
+//#include <thread_pool.hpp>
 
 namespace timax { namespace rpc
 {
@@ -68,4 +68,5 @@ namespace timax { namespace rpc
 #include <rest_rpc/base/utils.hpp>
 #include <rest_rpc/base/io_service_pool.hpp>
 #include <rest_rpc/base/hash.hpp>
+#include <rest_rpc/base/reflection.hpp>
 #include <rest_rpc/codec/codec.hpp>
