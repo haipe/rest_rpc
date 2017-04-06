@@ -35,11 +35,6 @@
 #include <type_traits>
 #include <future>
 
-// third-party libraries
-//#include <kapok/Kapok.hpp>
-#include <msgpack.hpp>
-//#include <thread_pool.hpp>
-
 namespace timax { namespace rpc
 {
 	using tcp = boost::asio::ip::tcp;
@@ -60,6 +55,7 @@ namespace timax { namespace rpc
 } }
 
 // common headers
+#include <rest_rpc/codec/codec.hpp>
 #include <rest_rpc/base/log.hpp>
 #include <rest_rpc/base/function_traits.hpp>
 #include <rest_rpc/base/consts.h>
@@ -68,5 +64,3 @@ namespace timax { namespace rpc
 #include <rest_rpc/base/utils.hpp>
 #include <rest_rpc/base/io_service_pool.hpp>
 #include <rest_rpc/base/hash.hpp>
-#include <rest_rpc/base/reflection.hpp>
-#include <rest_rpc/codec/codec.hpp>

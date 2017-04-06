@@ -16,28 +16,25 @@ namespace client
 	};
 	REFLECTION(configure, hostname, port);
 
-	//TIMAX_REFLECT(configure, hostname, port);
-
-	//configure get_config()
-	//{
-	//	std::ifstream in("client.cfg");
-	//	std::stringstream ss;
-	//	ss << in.rdbuf();
-	//
-	//	configure cfg = { "127.0.0.1", "9000" };
-	//	kapok::DeSerializer dr;
-	//	try
-	//	{
-	//		dr.Parse(ss.str());
-	//		dr.Deserialize(cfg);
-	//	}
-	//	catch (const std::exception& e)
-	//	{
-	//		timax::SPD_LOG_ERROR(e.what());
-	//	}
-	//
-	//	return cfg;
-	//}
+	configure get_config()
+	{
+		std::ifstream in("client.cfg");
+		std::stringstream ss;
+		ss << in.rdbuf();
+	
+		configure cfg = { "127.0.0.1", "9000" };
+		try
+		{
+			auto file_content = ss.str();
+			iguana::json::from_json(cfg, file_content.data(), file_content.size());
+		}
+		catch (const std::exception& e)
+		{
+			timax::SPD_LOG_ERROR(e.what());
+		}
+	
+		return cfg;
+	}
 }
 
 using sync_client = timax::rpc::sync_client<timax::rpc::msgpack_codec>;
@@ -57,25 +54,17 @@ int main(void)
 
 	sync_client client;
 	
-	//try
-	//{
-	//	auto result = client.call(endpoint, client::add, 1, 2);
-	//	assert(result == 3);
-	//
-	//	//client.call(endpoint, client::madoka, 2.0, 8);
-	//}
-	//catch (timax::rpc::exception const& e)
-	//{
-	//	std::cout << e.get_error_message() << std::endl;
-	//}
+	try
+	{
+		auto result = client.call(endpoint, client::add, 1, 2);
+		assert(result == 3);
+	
+		//client.call(endpoint, client::madoka, 2.0, 8);
+	}
+	catch (timax::rpc::exception const& e)
+	{
+		std::cout << e.get_error_message() << std::endl;
+	}
 
-	client::person p = { 28, "sdfsdf" };
-
-	auto buffer = timax::rpc::msgpack_codec{}.pack(p);
-
-	auto q = timax::rpc::msgpack_codec{}.unpack<client::person>(buffer.data(), buffer.size());
-
-	auto result = client.call(endpoint, client::test, p);
-	std::getchar();
 	return 0;
 }
