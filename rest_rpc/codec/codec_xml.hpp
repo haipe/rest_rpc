@@ -1,10 +1,10 @@
 #pragma once
 
-#include <iguana/json.hpp>
+#include <iguana/xml.hpp>
 
-namespace timax { namespace rpc 
+namespace timax { namespace rpc
 {
-	struct json_codec
+	struct xml_codec
 	{
 		using buffer_type = std::string;
 
@@ -13,7 +13,7 @@ namespace timax { namespace rpc
 		{
 			iguana::string_stream ss;
 			auto args_tuple = std::make_tuple(std::forward<Args>(args)...);
-			iguana::json::to_json(ss, args_tuple);
+			iguana::xml::to_xml(ss, args_tuple);
 			return ss.str();
 		}
 
@@ -21,7 +21,7 @@ namespace timax { namespace rpc
 		buffer_type pack(T&& t) const
 		{
 			iguana::string_stream ss;
-			iguana::json::to_json(ss, std::forward<T>(t));
+			iguana::xml::to_xml(ss, std::forward<T>(t));
 			return ss.str();
 		}
 
@@ -31,7 +31,7 @@ namespace timax { namespace rpc
 			try
 			{
 				T t;
-				iguana::json::from_json(t, data, length);
+				iguana::xml::from_xml(t, data, length);
 				return t;
 			}
 			catch (...)
