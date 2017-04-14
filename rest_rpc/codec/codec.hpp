@@ -2,6 +2,7 @@
 
 #include "codec_msgpack.hpp"
 #include "codec_json.hpp"
+#include "codec_xml.hpp"
 
 namespace timax { namespace rpc
 {

@@ -34,6 +34,7 @@
     <ClInclude Include="..\..\rest_rpc\codec\codec.hpp" />
     <ClInclude Include="..\..\rest_rpc\codec\codec_json.hpp" />
     <ClInclude Include="..\..\rest_rpc\codec\codec_msgpack.hpp" />
+    <ClInclude Include="..\..\rest_rpc\codec\codec_xml.hpp" />
     <ClInclude Include="..\..\rest_rpc\forward.hpp" />
     <ClInclude Include="..\..\rest_rpc\rpc.hpp" />
     <ClInclude Include="..\..\rest_rpc\server.hpp" />
