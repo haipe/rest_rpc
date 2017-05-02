@@ -5,15 +5,15 @@
 namespace timax
 {
 	template <typename HashPolicy, typename T>
-	struct hash
+	struct hash_tmpl
 	{
 		using hash_policy = HashPolicy;
-		using result_type = typename T;
+		using result_type = T;
 		using argument_type = typename hash_policy::argument_type;
 
 		result_type operator() (argument_type const& arg) const
 		{
-			return hash_policy::hash<T>(arg);
+			return hash_policy::template hash<T>(arg);
 		}
 	};
 

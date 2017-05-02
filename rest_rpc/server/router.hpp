@@ -61,7 +61,7 @@ namespace timax { namespace rpc
 		using invoker_container = typename router_base::invoker_container;
 		using on_read_func = typename router_base::on_read_func;
 		using on_error_func = typename router_base::on_error_func;
-		using hash_engine = hash<bkdr_hash<std::string>, uint64_t>;
+		using hash_engine = hash_tmpl<bkdr_hash<std::string>, uint64_t>;
 
 	public:
 		template <typename Handler, typename PostFunc>

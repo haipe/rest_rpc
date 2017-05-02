@@ -3,4 +3,4 @@
 	url = https://github.com/gabime/spdlog.git
 [submodule "iguana"]
 	path = iguana
-	url = https://github.com/IndignantAngel/iguana.git
+	url = https://github.com/qicosmos/iguana.git
