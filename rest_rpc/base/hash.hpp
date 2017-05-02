@@ -8,7 +8,7 @@ namespace timax
 	struct hash
 	{
 		using hash_policy = HashPolicy;
-		using result_type = typename T;
+		using result_type = T;
 		using argument_type = typename hash_policy::argument_type;
 
 		result_type operator() (argument_type const& arg) const

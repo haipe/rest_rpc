@@ -21,7 +21,7 @@ set(REST_RPC_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../..)
 include_directories(
 		${Boost_INCLUDE_DIRS}
 		${REST_RPC_DIRECTORY}
-		${REST_RPC_DIRECTORY}/iguana/iguana
+		${REST_RPC_DIRECTORY}/iguana
 		${REST_RPC_DIRECTORY}/iguana/third_party/msgpack/include
 		${REST_RPC_DIRECTORY}/spdlog/include
 		${REST_RPC_DIRECTORY}/msgpack/include
