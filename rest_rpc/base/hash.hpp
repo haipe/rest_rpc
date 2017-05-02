@@ -5,7 +5,7 @@
 namespace timax
 {
 	template <typename HashPolicy, typename T>
-	struct hash
+	struct hash_tmpl
 	{
 		using hash_policy = HashPolicy;
 		using result_type = T;
@@ -13,7 +13,7 @@ namespace timax
 
 		result_type operator() (argument_type const& arg) const
 		{
-			return hash_policy::hash<T>(arg);
+			return hash_policy::template hash<T>(arg);
 		}
 	};
 
