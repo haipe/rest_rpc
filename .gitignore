@@ -10,3 +10,11 @@ Release
 *.user
 /build
 /client_proxy/build
+/boost
+*.xcworkspacedata
+/darwin/Index
+/darwin/Build
+/darwin/rest_rpc.xcworkspace/xcuserdata
+/darwin/rest_rpc.xcworkspace/xcshareddata
+/darwin/rest_rpc.xcodeproj/xcuserdata
+/darwin/rest_rpc.xcodeproj/project.xcworkspace/xcuserdata

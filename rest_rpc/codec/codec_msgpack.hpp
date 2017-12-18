@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iguana/msgpack.hpp>
+#include <base/excetion.hpp>
 
 namespace timax { namespace rpc 
 {
@@ -37,7 +38,7 @@ namespace timax { namespace rpc
 			catch (...)
 			{
 				using namespace std::string_literals;
-				exception error{ error_code::FAIL, "Args not match!"s };
+				exception error( error_code::FAIL, "Args not match!" );
 				throw error;
 			}
 		}

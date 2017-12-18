@@ -19,7 +19,7 @@ namespace timax { namespace rpc
 
 		bool has_invoker(uint64_t name) noexcept
 		{
-			invokers_.find(name) != invokers_.end();
+			return invokers_.find(name) != invokers_.end();
 		}
 
 		void on_read(connection_ptr const& conn_ptr)
